@@ -118,7 +118,7 @@
         <!-- Filter Toolbar -->
         <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-800 mb-8 space-y-4">
             
-            <!-- User Tabs -->
+            <!-- User Tabs (Filter by author) -->
             <div>
                 <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
                     <i class="fa-solid fa-users mr-1"></i> Filtrar por participante:
@@ -135,11 +135,13 @@
             <!-- Search and Media Type Filters -->
             <div class="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
                 
+                <!-- Search Box -->
                 <div class="relative flex-grow max-w-md">
                     <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                     <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Buscar por título, etiquetas o usuario..." class="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all">
                 </div>
 
+                <!-- Media Type Buttons -->
                 <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl">
                     <button onclick="filterByType('all')" id="typeBtn-all" class="type-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm transition-all">
                         Todos
@@ -156,6 +158,7 @@
 
         <!-- Gallery Grid -->
         <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Dynamic Media Cards -->
         </div>
 
         <!-- Empty State -->
@@ -202,4 +205,785 @@
 
             <div class="mb-5">
                 <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">Seleccionar perfil existente:</label>
-                <div id="modalUsersList" class
+                <div id="modalUsersList" class="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1">
+                </div>
+            </div>
+
+            <form onsubmit="handleCreateUser(event)" class="space-y-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block">O crea un nuevo perfil:</label>
+                <div class="relative">
+                    <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="newUserNameInput" required placeholder="Ej. Juan, María, Javi..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-xs shadow-md transition-all">
+                    Guardar y Activar Perfil
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Add Photo or Video -->
+    <div id="uploadModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-5">
+                <div class="p-3 bg-brand-500/10 text-brand-600 rounded-2xl">
+                    <i class="fa-solid fa-photo-film text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Añadir Recuerdo</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Publicando como <strong id="uploadUserTag" class="text-brand-500">Javi</strong></p>
+                </div>
+            </div>
+
+            <form onsubmit="handleUploadMedia(event)" class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Tipo de contenido:</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center justify-center gap-2 p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer text-xs font-semibold bg-slate-50 dark:bg-slate-800 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10 has-[:checked]:text-brand-600">
+                            <input type="radio" name="mediaType" value="photo" checked class="hidden">
+                            <i class="fa-solid fa-image"></i> Foto
+                        </label>
+                        <label class="flex items-center justify-center gap-2 p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer text-xs font-semibold bg-slate-50 dark:bg-slate-800 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10 has-[:checked]:text-brand-600">
+                            <input type="radio" name="mediaType" value="video" class="hidden">
+                            <i class="fa-solid fa-video"></i> Vídeo
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex border-b border-slate-200 dark:border-slate-800 mb-3 text-xs">
+                        <button type="button" onclick="setSourceTab('file')" id="tabBtnFile" class="pb-2 px-3 font-semibold text-brand-600 border-b-2 border-brand-500">
+                            <i class="fa-solid fa-upload mr-1"></i> Subir Archivo
+                        </button>
+                        <button type="button" onclick="setSourceTab('url')" id="tabBtnUrl" class="pb-2 px-3 font-semibold text-slate-400 border-b-2 border-transparent">
+                            <i class="fa-solid fa-link mr-1"></i> Pegar Enlace URL
+                        </button>
+                    </div>
+
+                    <div id="fileInputContainer" class="block">
+                        <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                                <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 mb-2"></i>
+                                <p class="text-xs text-slate-600 dark:text-slate-400 font-medium" id="fileNamePreview">Haz clic para seleccionar foto o vídeo</p>
+                                <p class="text-[10px] text-slate-400 mt-1">Fotos: JPG, PNG, WEBP (se reducen solas). Vídeos: solo muy pequeños; para otros usa «Pegar Enlace URL»</p>
+                            </div>
+                            <input type="file" id="mediaFileInput" accept="image/*,video/*" class="hidden" onchange="handleFileSelected(this)">
+                        </label>
+                    </div>
+
+                    <div id="urlInputContainer" class="hidden">
+                        <input type="url" id="mediaUrlInput" placeholder="https://ejemplo.com/imagen.jpg o enlace directo .mp4" class="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Título del recuerdo:</label>
+                    <input type="text" id="mediaTitleInput" required placeholder="Ej. Fiesta en la playa, Cumpleaños..." class="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Etiquetas (separadas por comas):</label>
+                    <input type="text" id="mediaTagsInput" placeholder="Ej. Vacaciones, Verano, Javi" class="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+
+                <button type="submit" id="submitUploadBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs shadow-lg transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Publicar Recuerdo</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Lightbox Viewer -->
+    <div id="lightboxModal" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-md flex flex-col justify-between">
+        <div class="p-4 flex justify-between items-center text-white z-10 bg-gradient-to-b from-black/80 to-transparent">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <span id="lbBadge" class="px-2 py-0.5 rounded text-xs font-bold bg-brand-600">FOTO</span>
+                <div>
+                    <h3 id="lbTitle" class="text-sm font-bold truncate">Título</h3>
+                    <p class="text-[10px] text-slate-400">Subido por <strong id="lbAuthor" class="text-brand-400">...</strong></p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a id="lbDownloadBtn" href="#" download target="_blank" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white text-xs font-medium px-3 flex items-center gap-1.5 transition-colors">
+                    <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Descargar</span>
+                </a>
+                <button onclick="closeLightbox()" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="relative flex-grow flex items-center justify-center p-4 overflow-hidden select-none">
+            <button onclick="prevMedia()" class="absolute left-3 z-10 p-3 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/10">
+                <i class="fa-solid fa-chevron-left text-xl"></i>
+            </button>
+            <button onclick="nextMedia()" class="absolute right-3 z-10 p-3 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/10">
+                <i class="fa-solid fa-chevron-right text-xl"></i>
+            </button>
+
+            <div id="lbImageContainer" class="hidden max-w-full max-h-full flex items-center justify-center">
+                <img id="lbImage" src="" class="max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl">
+            </div>
+
+            <div id="lbVideoContainer" class="hidden w-full max-w-4xl max-h-[80vh] flex items-center justify-center">
+                <video id="lbVideo" controls class="max-h-[80vh] w-full rounded-xl shadow-2xl"></video>
+            </div>
+        </div>
+
+        <div class="p-4 bg-gradient-to-t from-black/80 to-transparent text-white text-xs flex justify-between items-center">
+            <span id="lbDate" class="text-slate-400"><i class="fa-regular fa-calendar mr-1"></i> -</span>
+            <div id="lbTags" class="flex gap-1"></div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: GitHub & Firebase Setup Guide -->
+    <div id="guideModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-brands fa-github text-brand-500"></i> Guía de Configuración
+                </h3>
+                <button onclick="toggleGuideModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs text-slate-600 dark:text-slate-300">
+                <p>Esta aplicación permite a **múltiples usuarios** conectarse y compartir fotos desde cualquier lugar en tiempo real mediante **Firebase**.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- UI Logic Script -->
+    <script>
+        window.appState = {
+            currentUser: localStorage.getItem('active_gallery_user') || 'Javi',
+            activeCategoryUser: 'all',
+            activeTypeFilter: 'all',
+            sourceTab: 'file',
+            selectedFileDataUrl: null,
+            fileProcessing: false,
+            lastCloudError: '',
+            allMedia: [],
+            filteredMedia: [],
+            currentLightboxIdx: -1,
+            db: null
+        };
+
+        // Límite de Firestore: 1 MiB por documento. Dejamos margen para título, etiquetas, etc.
+        const MAX_DATAURL_CHARS = 800000;
+        const DEFAULT_FILE_LABEL = 'Haz clic para seleccionar foto o vídeo';
+
+        // Escapa texto antes de meterlo en HTML (evita que apóstrofos, comillas o < > rompan la página)
+        window.esc = function(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        };
+
+        // Perfiles creados en este navegador (para que no desaparezcan de la lista si aún no tienen fotos)
+        function getKnownUsers() {
+            try {
+                const list = JSON.parse(localStorage.getItem('known_gallery_users') || '[]');
+                return Array.isArray(list) ? list : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function rememberUser(name) {
+            try {
+                const list = getKnownUsers();
+                if (!list.includes(name)) {
+                    list.push(name);
+                    localStorage.setItem('known_gallery_users', JSON.stringify(list));
+                }
+            } catch (e) {
+                console.warn('No se pudo recordar el perfil:', e);
+            }
+        }
+
+        function updateActiveUserDisplay() {
+            const user = window.appState.currentUser;
+            const nameEl = document.getElementById('userNameDisplay');
+            const avatarEl = document.getElementById('userAvatar');
+            const tagEl = document.getElementById('uploadUserTag');
+            if (nameEl) nameEl.textContent = user;
+            if (avatarEl) avatarEl.textContent = user.charAt(0).toUpperCase();
+            if (tagEl) tagEl.textContent = user;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateActiveUserDisplay();
+            rememberUser(window.appState.currentUser);
+        });
+
+        window.renderUserTabs = function() {
+            const tabBar = document.getElementById('usersTabBar');
+            if (!tabBar) return;
+            const media = window.appState.allMedia || [];
+            
+            const usersMap = {};
+            media.forEach(m => {
+                const name = m.userName || 'Anónimo';
+                usersMap[name] = (usersMap[name] || 0) + 1;
+            });
+
+            let html = `
+                <button onclick="filterByUser('all')" id="userTab-all" class="user-tab-btn px-4 py-2 rounded-xl text-xs font-bold ${window.appState.activeCategoryUser === 'all' ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'} flex items-center gap-2 whitespace-nowrap transition-all">
+                    <i class="fa-solid fa-layer-group"></i> Todos los recuerdos (${media.length})
+                </button>
+            `;
+
+            Object.keys(usersMap).forEach(username => {
+                const isSelected = window.appState.activeCategoryUser === username;
+                const safeName = window.esc(username);
+                html += `
+                    <button onclick="filterByUser(this.dataset.user)" data-user="${safeName}" class="user-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ${isSelected ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'} flex items-center gap-2 whitespace-nowrap transition-all">
+                        <span class="w-5 h-5 rounded-full ${isSelected ? 'bg-white text-brand-600' : 'bg-brand-500/20 text-brand-500'} flex items-center justify-center text-[10px] font-bold">
+                            ${window.esc(username.charAt(0).toUpperCase())}
+                        </span>
+                        Fotos de ${safeName} (${usersMap[username]})
+                    </button>
+                `;
+            });
+
+            tabBar.innerHTML = html;
+        };
+
+        window.renderGallery = function() {
+            const grid = document.getElementById('galleryGrid');
+            const emptyState = document.getElementById('emptyState');
+            if (!grid) return;
+            const items = window.appState.filteredMedia || [];
+
+            grid.innerHTML = '';
+
+            if (items.length === 0) {
+                if (emptyState) emptyState.classList.remove('hidden');
+                return;
+            } else {
+                if (emptyState) emptyState.classList.add('hidden');
+            }
+
+            items.forEach((item, index) => {
+                const isVideo = item.type === 'video';
+                const safeUrl = window.esc(item.url);
+                const safeTitle = window.esc(item.title);
+                const safeUser = window.esc(item.userName || 'Anónimo');
+                const card = document.createElement('div');
+                card.className = 'group bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col';
+
+                card.innerHTML = `
+                    <div class="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-slate-800 cursor-pointer" onclick="openLightbox(${index})">
+                        ${isVideo 
+                            ? `<video src="${safeUrl}" class="w-full h-full object-cover"></video>` 
+                            : `<img src="${safeUrl}" alt="${safeTitle}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">`
+                        }
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                            ${isVideo 
+                                ? `<div class="w-12 h-12 rounded-full bg-brand-500 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"><i class="fa-solid fa-play text-lg ml-0.5"></i></div>`
+                                : `<div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><i class="fa-solid fa-expand"></i></div>`
+                            }
+                        </div>
+                        <span class="absolute top-3 left-3 px-2 py-0.5 rounded-md text-[10px] font-bold text-white ${isVideo ? 'bg-indigo-600' : 'bg-emerald-600'} uppercase shadow">
+                            ${isVideo ? '<i class="fa-solid fa-video mr-1"></i>Vídeo' : '<i class="fa-solid fa-image mr-1"></i>Foto'}
+                        </span>
+                    </div>
+
+                    <div class="p-4 flex-grow flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm line-clamp-1">${safeTitle}</h3>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-xs text-brand-600 dark:text-brand-400 font-semibold mb-2">
+                                <i class="fa-solid fa-user-tag text-[10px]"></i>
+                                <span>Subido por ${safeUser}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                ${(item.tags || []).map(t => `<span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded text-[10px]">#${window.esc(t)}</span>`).join('')}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                            <span class="text-slate-400 text-[10px]">${window.esc(item.date || 'Reciente')}</span>
+                            <a href="${safeUrl}" download target="_blank" onclick="event.stopPropagation()" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white text-slate-700 dark:text-slate-300 rounded-lg font-medium transition-colors flex items-center gap-1 text-[11px]">
+                                <i class="fa-solid fa-download"></i> Descargar
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        };
+
+        window.applyFilters = function() {
+            const searchInput = document.getElementById('searchInput');
+            const search = searchInput ? searchInput.value.toLowerCase() : '';
+            const selectedUser = window.appState.activeCategoryUser;
+            const selectedType = window.appState.activeTypeFilter;
+
+            window.appState.filteredMedia = (window.appState.allMedia || []).filter(item => {
+                const matchesSearch = (item.title || '').toLowerCase().includes(search) || 
+                                      (item.userName || '').toLowerCase().includes(search) ||
+                                      (item.tags || []).some(t => t.toLowerCase().includes(search));
+
+                const matchesUser = selectedUser === 'all' || item.userName === selectedUser;
+                const matchesType = selectedType === 'all' || item.type === selectedType;
+
+                return matchesSearch && matchesUser && matchesType;
+            });
+
+            window.renderGallery();
+        };
+
+        window.filterByUser = function(userName) {
+            window.appState.activeCategoryUser = userName;
+            window.renderUserTabs();
+            window.applyFilters();
+        };
+
+        window.filterByType = function(type) {
+            window.appState.activeTypeFilter = type;
+            document.querySelectorAll('.type-btn').forEach(b => {
+                b.className = 'type-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 transition-all';
+            });
+            const activeBtn = document.getElementById(`typeBtn-${type}`);
+            if (activeBtn) {
+                activeBtn.className = 'type-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm transition-all';
+            }
+            window.applyFilters();
+        };
+
+        window.openProfileModal = function() {
+            const listContainer = document.getElementById('modalUsersList');
+            const media = window.appState.allMedia || [];
+            
+            const usersSet = new Set([
+                'Javi',
+                window.appState.currentUser,
+                ...getKnownUsers(),
+                ...media.map(m => m.userName).filter(Boolean)
+            ]);
+            listContainer.innerHTML = '';
+
+            usersSet.forEach(u => {
+                const isCurrent = u === window.appState.currentUser;
+                const pill = document.createElement('button');
+                pill.type = 'button';
+                pill.onclick = () => window.switchActiveUser(u);
+                pill.className = `px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${isCurrent ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'}`;
+                pill.innerHTML = '<i class="fa-solid fa-user text-[10px]"></i> ' + window.esc(u);
+                listContainer.appendChild(pill);
+            });
+
+            document.getElementById('profileModal').classList.remove('hidden');
+        };
+
+        window.closeProfileModal = function() {
+            document.getElementById('profileModal').classList.add('hidden');
+        };
+
+        window.switchActiveUser = function(userName) {
+            window.appState.currentUser = userName;
+            try {
+                localStorage.setItem('active_gallery_user', userName);
+            } catch (e) {
+                console.warn('No se pudo guardar el perfil activo:', e);
+            }
+            rememberUser(userName);
+            updateActiveUserDisplay();
+            closeProfileModal();
+        };
+
+        window.handleCreateUser = function(e) {
+            e.preventDefault();
+            const input = document.getElementById('newUserNameInput');
+            const val = input.value.trim();
+            if (val) {
+                window.switchActiveUser(val);
+                input.value = '';
+            }
+        };
+
+        window.openUploadModal = function() {
+            document.getElementById('uploadModal').classList.remove('hidden');
+        };
+
+        window.closeUploadModal = function() {
+            document.getElementById('uploadModal').classList.add('hidden');
+        };
+
+        window.setSourceTab = function(tab) {
+            window.appState.sourceTab = tab;
+            const tabFile = document.getElementById('tabBtnFile');
+            const tabUrl = document.getElementById('tabBtnUrl');
+            const containerFile = document.getElementById('fileInputContainer');
+            const containerUrl = document.getElementById('urlInputContainer');
+
+            if (tab === 'file') {
+                tabFile.className = 'pb-2 px-3 font-semibold text-brand-600 border-b-2 border-brand-500';
+                tabUrl.className = 'pb-2 px-3 font-semibold text-slate-400 border-b-2 border-transparent';
+                containerFile.classList.remove('hidden');
+                containerUrl.classList.add('hidden');
+            } else {
+                tabUrl.className = 'pb-2 px-3 font-semibold text-brand-600 border-b-2 border-brand-500';
+                tabFile.className = 'pb-2 px-3 font-semibold text-slate-400 border-b-2 border-transparent';
+                containerUrl.classList.remove('hidden');
+                containerFile.classList.add('hidden');
+            }
+        };
+
+        // Reduce una foto (tamaño y calidad) hasta que quepa en el límite de Firestore
+        window.compressImage = function(file) {
+            return new Promise((resolve, reject) => {
+                const objectUrl = URL.createObjectURL(file);
+                const img = new Image();
+                img.onload = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    let maxDim = 1280;
+                    let quality = 0.8;
+                    for (let attempt = 0; attempt < 14; attempt++) {
+                        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+                        const w = Math.max(1, Math.round(img.width * scale));
+                        const h = Math.max(1, Math.round(img.height * scale));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, w, h);
+                        ctx.drawImage(img, 0, 0, w, h);
+                        const result = canvas.toDataURL('image/jpeg', quality);
+                        if (result.length <= MAX_DATAURL_CHARS) {
+                            resolve(result);
+                            return;
+                        }
+                        if (quality > 0.5) {
+                            quality -= 0.1;
+                        } else {
+                            maxDim = Math.round(maxDim * 0.8);
+                        }
+                    }
+                    reject(new Error('No se pudo reducir la foto lo suficiente. Prueba con otra más pequeña.'));
+                };
+                img.onerror = () => {
+                    URL.revokeObjectURL(objectUrl);
+                    reject(new Error('No se pudo leer la imagen. Si es una foto HEIC de iPhone, conviértela a JPG o cambia el ajuste de la cámara a «Más compatible».'));
+                };
+                img.src = objectUrl;
+            });
+        };
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        window.handleFileSelected = async function(input) {
+            const file = input.files[0];
+            window.appState.selectedFileDataUrl = null;
+            const label = document.getElementById('fileNamePreview');
+            if (!file) {
+                label.textContent = DEFAULT_FILE_LABEL;
+                return;
+            }
+
+            const isVideo = file.type.startsWith('video/');
+            const isImage = file.type.startsWith('image/');
+            if (!isVideo && !isImage) {
+                alert('Elige una foto o un vídeo.');
+                input.value = '';
+                label.textContent = DEFAULT_FILE_LABEL;
+                return;
+            }
+
+            // Ajusta el tipo (Foto/Vídeo) al archivo elegido
+            const radio = document.querySelector(`input[name="mediaType"][value="${isVideo ? 'video' : 'photo'}"]`);
+            if (radio) radio.checked = true;
+
+            window.appState.fileProcessing = true;
+            label.textContent = `Preparando: ${file.name}...`;
+
+            try {
+                let dataUrl;
+                if (isVideo) {
+                    if (file.size > 550 * 1024) {
+                        throw new Error('Este vídeo es demasiado grande para guardarse en la base de datos (límite aprox. 550 KB). Usa la pestaña «Pegar Enlace URL» con un enlace directo a un archivo .mp4.');
+                    }
+                    dataUrl = await readFileAsDataURL(file);
+                    if (dataUrl.length > MAX_DATAURL_CHARS) {
+                        throw new Error('El vídeo es demasiado grande. Usa la pestaña «Pegar Enlace URL».');
+                    }
+                } else {
+                    dataUrl = await window.compressImage(file);
+                }
+                window.appState.selectedFileDataUrl = dataUrl;
+                label.textContent = `Listo: ${file.name} (${Math.round(dataUrl.length / 1024)} KB)`;
+            } catch (err) {
+                console.error('Error preparando el archivo:', err);
+                alert(err.message || 'No se pudo preparar el archivo.');
+                input.value = '';
+                label.textContent = DEFAULT_FILE_LABEL;
+            } finally {
+                window.appState.fileProcessing = false;
+            }
+        };
+
+        window.handleUploadMedia = async function(e) {
+            e.preventDefault();
+
+            if (window.appState.fileProcessing) {
+                alert('Espera un momento: el archivo se está preparando.');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitUploadBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Publicando...`;
+
+            try {
+                const type = document.querySelector('input[name="mediaType"]:checked').value;
+                const title = document.getElementById('mediaTitleInput').value.trim();
+                const tagsStr = document.getElementById('mediaTagsInput').value;
+                const tags = tagsStr.split(',').map(t => t.trim()).filter(Boolean);
+
+                let mediaUrl = '';
+                if (window.appState.sourceTab === 'file') {
+                    mediaUrl = window.appState.selectedFileDataUrl;
+                } else {
+                    mediaUrl = document.getElementById('mediaUrlInput').value.trim();
+                }
+
+                if (!mediaUrl) {
+                    alert('Por favor selecciona un archivo o introduce un enlace URL.');
+                    return;
+                }
+
+                const newMedia = {
+                    title: title,
+                    type: type,
+                    url: mediaUrl,
+                    userName: window.appState.currentUser,
+                    date: new Date().toISOString().split('T')[0],
+                    tags: tags.length > 0 ? tags : ['General']
+                };
+
+                if (typeof window.saveMediaToFirestore !== 'function') {
+                    throw new Error('La conexión con Firebase no se ha cargado. Recarga la página (Ctrl+F5) e inténtalo de nuevo.');
+                }
+
+                const where = await window.saveMediaToFirestore(newMedia);
+
+                if (where === 'local') {
+                    alert('⚠️ No se ha podido guardar en la nube (' + (window.appState.lastCloudError || 'error desconocido') + ').\n\nSe ha guardado SOLO en este navegador: los demás no la verán.\n\nRevisa las reglas de Firestore en la consola de Firebase.');
+                }
+
+                document.getElementById('mediaTitleInput').value = '';
+                document.getElementById('mediaTagsInput').value = '';
+                document.getElementById('mediaUrlInput').value = '';
+                document.getElementById('mediaFileInput').value = '';
+                document.getElementById('fileNamePreview').textContent = DEFAULT_FILE_LABEL;
+                window.appState.selectedFileDataUrl = null;
+
+                closeUploadModal();
+            } catch (err) {
+                console.error('Error al publicar:', err);
+                alert('No se ha podido publicar: ' + (err.message || err));
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Publicar Recuerdo`;
+            }
+        };
+
+        window.openLightbox = function(index) {
+            window.appState.currentLightboxIdx = index;
+            const item = window.appState.filteredMedia[index];
+            if (!item) return;
+
+            const modal = document.getElementById('lightboxModal');
+            document.getElementById('lbTitle').textContent = item.title;
+            document.getElementById('lbAuthor').textContent = item.userName || 'Anónimo';
+            document.getElementById('lbDate').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i> ${window.esc(item.date || 'Reciente')}`;
+            document.getElementById('lbDownloadBtn').href = item.url;
+
+            const imgContainer = document.getElementById('lbImageContainer');
+            const videoContainer = document.getElementById('lbVideoContainer');
+            const img = document.getElementById('lbImage');
+            const video = document.getElementById('lbVideo');
+
+            if (item.type === 'video') {
+                imgContainer.classList.add('hidden');
+                videoContainer.classList.remove('hidden');
+                video.src = item.url;
+                video.play().catch(() => {});
+            } else {
+                videoContainer.classList.add('hidden');
+                video.pause();
+                imgContainer.classList.remove('hidden');
+                img.src = item.url;
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        window.closeLightbox = function() {
+            document.getElementById('lightboxModal').classList.add('hidden');
+            document.getElementById('lbVideo').pause();
+        };
+
+        window.nextMedia = function() {
+            const list = window.appState.filteredMedia;
+            if (list.length === 0) return;
+            window.appState.currentLightboxIdx = (window.appState.currentLightboxIdx + 1) % list.length;
+            window.openLightbox(window.appState.currentLightboxIdx);
+        };
+
+        window.prevMedia = function() {
+            const list = window.appState.filteredMedia;
+            if (list.length === 0) return;
+            window.appState.currentLightboxIdx = (window.appState.currentLightboxIdx - 1 + list.length) % list.length;
+            window.openLightbox(window.appState.currentLightboxIdx);
+        };
+
+        window.toggleTheme = function() {
+            document.documentElement.classList.toggle('dark');
+        };
+
+        window.toggleGuideModal = function() {
+            document.getElementById('guideModal').classList.toggle('hidden');
+        };
+    </script>
+
+    <!-- FIREBASE & APPLICATION SCRIPT -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBUN1hX24qVam1BYineFpAm8FouG1tYf28",
+            authDomain: "fotos-javi.firebaseapp.com",
+            projectId: "fotos-javi",
+            storageBucket: "fotos-javi.firebasestorage.app",
+            messagingSenderId: "803260301490",
+            appId: "1:803260301490:web:06bfb2384c2e25d2c609ab",
+            measurementId: "G-C3E8PYRWLQ"
+        };
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            window.appState.db = getFirestore(app);
+            setupRealtimeListener();
+        } catch (err) {
+            console.error("Error al inicializar Firebase:", err);
+            loadFallbackLocalData();
+        }
+
+        function setupRealtimeListener() {
+            try {
+                const colRef = collection(window.appState.db, 'fotos');
+                const q = query(colRef, orderBy('createdAt', 'desc'));
+
+                onSnapshot(q, (snapshot) => {
+                    const items = [];
+                    snapshot.forEach(doc => {
+                        items.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    window.appState.allMedia = items;
+                    window.applyFilters();
+                    window.renderUserTabs();
+                }, (error) => {
+                    console.warn("Error leyendo Firestore, cambiando a almacenamiento local:", error);
+                    window.appState.lastCloudError = error.code || error.message || 'error de lectura';
+                    loadFallbackLocalData();
+                });
+            } catch(e) {
+                console.error("Error configurando listener:", e);
+                loadFallbackLocalData();
+            }
+        }
+
+        function loadFallbackLocalData() {
+            let savedLocal = [];
+            try {
+                savedLocal = JSON.parse(localStorage.getItem('local_gallery_media') || '[]');
+            } catch (e) {
+                console.warn('No se pudieron leer los datos locales:', e);
+            }
+            window.appState.allMedia = savedLocal;
+            window.applyFilters();
+            window.renderUserTabs();
+        }
+
+        // Devuelve 'cloud' si se guardó en Firebase, o 'local' si solo se pudo guardar en este navegador.
+        // Lanza un error si no se pudo guardar en ningún sitio.
+        window.saveMediaToFirestore = async function(mediaItem) {
+            if (window.appState.db) {
+                try {
+                    const colRef = collection(window.appState.db, 'fotos');
+                    const timeout = new Promise((_, reject) => {
+                        setTimeout(() => {
+                            const err = new Error('La conexión tarda demasiado (¿sin internet?). Si en unos segundos aparece en la galería, ya está publicada; si no, inténtalo de nuevo.');
+                            err.code = 'timeout';
+                            reject(err);
+                        }, 20000);
+                    });
+                    await Promise.race([
+                        addDoc(colRef, { ...mediaItem, createdAt: Date.now() }),
+                        timeout
+                    ]);
+                    return 'cloud';
+                } catch (e) {
+                    console.error("Error guardando en Firebase:", e);
+                    if (e.code === 'timeout') {
+                        throw e;
+                    }
+                    window.appState.lastCloudError = e.code || e.message || 'error desconocido';
+                    saveToLocalStorage(mediaItem);
+                    return 'local';
+                }
+            }
+            window.appState.lastCloudError = 'no se pudo conectar con Firebase';
+            saveToLocalStorage(mediaItem);
+            return 'local';
+        };
+
+        function saveToLocalStorage(mediaItem) {
+            const item = { id: 'local-' + Date.now(), ...mediaItem };
+            let savedLocal = [];
+            try {
+                savedLocal = JSON.parse(localStorage.getItem('local_gallery_media') || '[]');
+            } catch (e) {
+                savedLocal = [];
+            }
+            savedLocal.unshift(item);
+            try {
+                localStorage.setItem('local_gallery_media', JSON.stringify(savedLocal));
+            } catch (e) {
+                throw new Error('No se pudo guardar ni en la nube (' + (window.appState.lastCloudError || 'error') + ') ni en este navegador (sin espacio). Prueba con una foto más pequeña.');
+            }
+            if (!window.appState.db) {
+                loadFallbackLocalData();
+            } else {
+                window.appState.allMedia = [item, ...(window.appState.allMedia || [])];
+                window.applyFilters();
+                window.renderUserTabs();
+            }
+        }
+    </script>
+</body>
+</html>
