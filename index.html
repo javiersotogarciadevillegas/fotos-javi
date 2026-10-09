@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Álbum Compartido - Fotos de Javi y Amigos</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
+
+    <!-- Header / Nav -->
+    <header class="sticky top-0 z-40 glass border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-gradient-to-tr from-brand-600 to-indigo-600 text-white rounded-xl shadow-md">
+                    <i class="fa-solid fa-users-rectangle text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        Álbum Compartido
+                    </h1>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium hidden sm:block">Fotos de Javi y amigos</p>
+                </div>
+            </div>
+
+            <!-- Profile & Action Buttons -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- User Profile Active Pill -->
+                <button onclick="openProfileModal()" id="activeUserBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-brand-500 transition-all text-xs font-semibold shadow-sm">
+                    <span class="w-6 h-6 rounded-full bg-brand-500 text-white flex items-center justify-center text-[10px]" id="userAvatar">?</span>
+                    <span class="truncate max-w-[90px] sm:max-w-[120px]" id="userNameDisplay">Iniciando...</span>
+                    <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+                </button>
+
+                <!-- Add Media Button -->
+                <button onclick="openUploadModal()" class="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md shadow-brand-500/20 transition-all flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span>Añadir <span class="hidden sm:inline">Foto/Vídeo</span></span>
+                </button>
+
+                <!-- Instructions Modal Toggle -->
+                <button onclick="toggleGuideModal()" class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors" title="Guía de configuración">
+                    <i class="fa-brands fa-github text-lg"></i>
+                </button>
+
+                <!-- Dark Mode Toggle -->
+                <button onclick="toggleTheme()" class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors" title="Cambiar tema">
+                    <i class="fa-solid fa-moon text-lg hidden dark:block"></i>
+                    <i class="fa-solid fa-sun text-lg block dark:hidden"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+        
+        <!-- Hero Section -->
+        <div class="mb-8 text-center sm:text-left flex flex-col sm:flex-row justify-between items-center gap-4 bg-gradient-to-r from-brand-500/10 via-indigo-500/5 to-transparent p-6 rounded-3xl border border-brand-500/10">
+            <div>
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-brand-500/20 text-brand-600 dark:text-brand-400 inline-block mb-2">
+                    <i class="fa-solid fa-globe mr-1"></i> Sincronizado en Tiempo Real
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                    Galería Colaborativa
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
+                    Sube tus recuerdos al grupo. Crea tu usuario o selecciona quién eres para añadir tus propias publicaciones.
+                </p>
+            </div>
+            
+            <button onclick="openProfileModal()" class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm hover:shadow-md transition-all text-xs font-bold flex items-center gap-2 text-slate-700 dark:text-slate-200">
+                <i class="fa-solid fa-user-plus text-brand-500"></i>
+                <span>Crear o Cambiar Perfil</span>
+            </button>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-800 mb-8 space-y-4">
+            
+            <!-- User Tabs (Filter by author) -->
+            <div>
+                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                    <i class="fa-solid fa-users mr-1"></i> Filtrar por participante:
+                </label>
+                <div id="usersTabBar" class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                    <!-- Dynamic user pills go here -->
+                    <button onclick="filterByUser('all')" id="userTab-all" class="user-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-brand-500 text-white shadow-sm flex items-center gap-2 whitespace-nowrap transition-all">
+                        <i class="fa-solid fa-layer-group"></i> Todos los recuerdos (<span id="count-user-all">0</span>)
+                    </button>
+                </div>
+            </div>
+
+            <hr class="border-slate-100 dark:border-slate-800">
+
+            <!-- Search and Media Type Filters -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
+                
+                <!-- Search Box -->
+                <div class="relative flex-grow max-w-md">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Buscar por título, etiquetas o usuario..." class="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all">
+                </div>
+
+                <!-- Media Type Buttons -->
+                <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl">
+                    <button onclick="filterByType('all')" id="typeBtn-all" class="type-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm transition-all">
+                        Todos
+                    </button>
+                    <button onclick="filterByType('photo')" id="typeBtn-photo" class="type-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 transition-all">
+                        <i class="fa-solid fa-image mr-1"></i> Fotos
+                    </button>
+                    <button onclick="filterByType('video')" id="typeBtn-video" class="type-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 transition-all">
+                        <i class="fa-solid fa-video mr-1"></i> Vídeos
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gallery Grid -->
+        <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Dynamic Media Cards -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
+            <div class="w-16 h-16 bg-brand-50 dark:bg-slate-800 text-brand-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-photo-film"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-800 dark:text-slate-200">No hay fotos ni vídeos aún</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
+                ¡Sé el primero en compartir! Haz clic en el botón superior para añadir contenido.
+            </p>
+            <button onclick="openUploadModal()" class="mt-4 px-4 py-2 bg-brand-600 text-white font-semibold rounded-xl text-xs hover:bg-brand-700 transition-colors">
+                Subir primera foto
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p>© Álbum de Fotos Colaborativo - Listo para GitHub Pages</p>
+            <button onclick="toggleGuideModal()" class="text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 font-medium">
+                <i class="fa-brands fa-github"></i> Instrucciones de despliegue en GitHub
+            </button>
+        </div>
+    </footer>
+
+    <!-- MODAL 1: Create or Select Profile -->
+    <div id="profileModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative">
+            <button onclick="closeProfileModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 bg-brand-500/10 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl font-bold">
+                    <i class="fa-solid fa-user-gear"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Perfil de Usuario</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Identifícate con tu nombre para que los demás sepan de quién son las fotos.
+                </p>
+            </div>
+
+            <!-- Existing Users List -->
+            <div class="mb-5">
+                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">Seleccionar perfil existente:</label>
+                <div id="modalUsersList" class="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1">
+                    <!-- Dynamic user choices -->
+                </div>
+            </div>
+
+            <!-- Create New User Form -->
+            <form onsubmit="handleCreateUser(event)" class="space-y-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <label class="text-xs font-bold text-slate-500 dark:text-slate-400 block">O crea un nuevo perfil:</label>
+                <div class="relative">
+                    <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="newUserNameInput" required placeholder="Ej. Juan, María, Javi..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-xs shadow-md transition-all">
+                    Guardar y Activar Perfil
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Add Photo or Video -->
+    <div id="uploadModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeUploadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-5">
+                <div class="p-3 bg-brand-500/10 text-brand-600 rounded-2xl">
+                    <i class="fa-solid fa-photo-film text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Añadir Recuerdo</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Publicando como <strong id="uploadUserTag" class="text-brand-500">...</strong></p>
+                </div>
+            </div>
+
+            <form onsubmit="handleUploadMedia(event)" class="space-y-4">
+                
+                <!-- Media Type Select -->
+                <div>
+                    <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Tipo de contenido:</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center justify-center gap-2 p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer text-xs font-semibold bg-slate-50 dark:bg-slate-800 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10 has-[:checked]:text-brand-600">
+                            <input type="radio" name="mediaType" value="photo" checked class="hidden" onchange="toggleUploadSourceUI()">
+                            <i class="fa-solid fa-image"></i> Foto
+                        </label>
+                        <label class="flex items-center justify-center gap-2 p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer text-xs font-semibold bg-slate-50 dark:bg-slate-800 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10 has-[:checked]:text-brand-600">
+                            <input type="radio" name="mediaType" value="video" class="hidden" onchange="toggleUploadSourceUI()">
+                            <i class="fa-solid fa-video"></i> Vídeo
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Input source tabs (File vs URL) -->
+                <div>
+                    <div class="flex border-b border-slate-200 dark:border-slate-800 mb-3 text-xs">
+                        <button type="button" onclick="setSourceTab('file')" id="tabBtnFile" class="pb-2 px-3 font-semibold text-brand-600 border-b-2 border-brand-500">
+                            <i class="fa-solid fa-upload mr-1"></i> Subir Archivo
+                        </button>
+                        <button type="button" onclick="setSourceTab('url')" id="tabBtnUrl" class="pb-2 px-3 font-semibold text-slate-400 border-b-2 border-transparent">
+                            <i class="fa-solid fa-link mr-1"></i> Pegar Enlace URL
+                        </button>
+                    </div>
+
+                    <!-- File Input Box -->
+                    <div id="fileInputContainer" class="block">
+                        <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                                <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 mb-2"></i>
+                                <p class="text-xs text-slate-600 dark:text-slate-400 font-medium" id="fileNamePreview">Haz clic para seleccionar foto o vídeo</p>
+                                <p class="text-[10px] text-slate-400 mt-1">JPG, PNG, WEBP, MP4</p>
+                            </div>
+                            <input type="file" id="mediaFileInput" accept="image/*,video/*" class="hidden" onchange="handleFileSelected(this)">
+                        </label>
+                    </div>
+
+                    <!-- URL Input Box -->
+                    <div id="urlInputContainer" class="hidden">
+                        <input type="url" id="mediaUrlInput" placeholder="https://ejemplo.com/imagen.jpg o enlace .mp4" class="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                </div>
+
+                <!-- Title & Tags -->
+                <div>
+                    <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Título del recuerdo:</label>
+                    <input type="text" id="mediaTitleInput" required placeholder="Ej. Fiesta en la playa, Cumpleaños..." class="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Etiquetas (separadas por comas):</label>
+                    <input type="text" id="mediaTagsInput" placeholder="Ej. Vacaciones, Verano, Javi" class="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+
+                <button type="submit" id="submitUploadBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-xs shadow-lg transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Publicar Recuerdo</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Lightbox Viewer -->
+    <div id="lightboxModal" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-md flex flex-col justify-between">
+        <div class="p-4 flex justify-between items-center text-white z-10 bg-gradient-to-b from-black/80 to-transparent">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <span id="lbBadge" class="px-2 py-0.5 rounded text-xs font-bold bg-brand-600">FOTO</span>
+                <div>
+                    <h3 id="lbTitle" class="text-sm font-bold truncate">Título</h3>
+                    <p class="text-[10px] text-slate-400">Subido por <strong id="lbAuthor" class="text-brand-400">...</strong></p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <a id="lbDownloadBtn" href="#" download target="_blank" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white text-xs font-medium px-3 flex items-center gap-1.5 transition-colors">
+                    <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Descargar</span>
+                </a>
+                <button onclick="closeLightbox()" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="relative flex-grow flex items-center justify-center p-4 overflow-hidden select-none">
+            <button onclick="prevMedia()" class="absolute left-3 z-10 p-3 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/10">
+                <i class="fa-solid fa-chevron-left text-xl"></i>
+            </button>
+            <button onclick="nextMedia()" class="absolute right-3 z-10 p-3 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/10">
+                <i class="fa-solid fa-chevron-right text-xl"></i>
+            </button>
+
+            <!-- Image preview -->
+            <div id="lbImageContainer" class="hidden max-w-full max-h-full flex items-center justify-center">
+                <img id="lbImage" src="" class="max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl">
+            </div>
+
+            <!-- Video preview -->
+            <div id="lbVideoContainer" class="hidden w-full max-w-4xl max-h-[80vh] flex items-center justify-center">
+                <video id="lbVideo" controls class="max-h-[80vh] w-full rounded-xl shadow-2xl"></video>
+            </div>
+        </div>
+
+        <div class="p-4 bg-gradient-to-t from-black/80 to-transparent text-white text-xs flex justify-between items-center">
+            <span id="lbDate" class="text-slate-400"><i class="fa-regular fa-calendar mr-1"></i> -</span>
+            <div id="lbTags" class="flex gap-1"></div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: GitHub & Firebase Setup Guide -->
+    <div id="guideModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="fa-brands fa-github text-brand-500"></i> Guía de Configuración
+                </h3>
+                <button onclick="toggleGuideModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs text-slate-600 dark:text-slate-300">
+                <p>Esta aplicación permite a **múltiples usuarios** conectarse y compartir fotos desde cualquier lugar en tiempo real mediante **Firebase Firestore**.</p>
+
+                <div class="bg-slate-100 dark:bg-slate-950 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+                    <h4 class="font-bold text-slate-900 dark:text-white"> Pasos para publicar gratis en GitHub Pages:</h4>
+                    <ol class="list-decimal list-inside space-y-1 pl-1">
+                        <li>Crea un repositorio en GitHub llamado <code class="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded">fotos-javi</code>.</li>
+                        <li>Guarda este archivo HTML con el nombre exacto <code class="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded">index.html</code> dentro del repositorio.</li>
+                        <li>En GitHub, ve a <strong>Settings &gt; Pages</strong> y activa el despliegue en la rama <code class="bg-slate-200 dark:bg-slate-800 px-1 py-0.5 rounded">main</code>.</li>
+                        <li>¡Listo! Comparte el enlace público con tus amigos.</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE & APPLICATION SCRIPT -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global state
+        window.appState = {
+            currentUser: localStorage.getItem('active_gallery_user') || 'Javi',
+            activeCategoryUser: 'all',
+            activeTypeFilter: 'all',
+            sourceTab: 'file',
+            selectedFileDataUrl: null,
+            allMedia: [],
+            filteredMedia: [],
+            currentLightboxIdx: -1,
+            db: null,
+            auth: null,
+            appId: typeof __app_id !== 'undefined' ? __app_id : 'galeria-javi-app'
+        };
+
+        // Firebase Config Setup
+        const firebaseConfig = typeof __firebase_config !== 'undefined' 
+            ? JSON.parse(__firebase_config)
+            : {
+                // Configuración de respaldo/demostración
+                apiKey: "AIzaSyDemoConfigForGitHubPagesAppKey",
+                authDomain: "demo-gallery.firebaseapp.com",
+                projectId: "demo-gallery-app",
+                storageBucket: "demo-gallery.appspot.com",
+                messagingSenderId: "123456789",
+                appId: "1:123456789:web:demo"
+            };
+
+        // Initialize Firebase
+        try {
+            const app = initializeApp(firebaseConfig);
+            window.appState.auth = getAuth(app);
+            window.appState.db = getFirestore(app);
+
+            // Authenticate Anonymously
+            await signInAnonymously(window.appState.auth);
+            
+            // Listen to Realtime Database Firestore Collection
+            setupRealtimeListener();
+        } catch (err) {
+            console.warn("Modo local/demo activado (sin Firebase backend configurado):", err);
+            loadFallbackLocalData();
+        }
+
+        // Setup Firestore Listener
+        function setupRealtimeListener() {
+            const collectionPath = collection(window.appState.db, 'artifacts', window.appState.appId, 'public', 'data', 'gallery_media');
+            
+            onSnapshot(collectionPath, (snapshot) => {
+                const items = [];
+                snapshot.forEach(doc => {
+                    items.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Fallback mock items if collection is empty
+                if (items.length === 0) {
+                    loadFallbackLocalData();
+                } else {
+                    window.appState.allMedia = items.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                    window.applyFilters();
+                    window.renderUserTabs();
+                }
+            }, (error) => {
+                console.error("Error cargando Firestore:", error);
+                loadFallbackLocalData();
+            });
+        }
+
+        function loadFallbackLocalData() {
+            // Mock initial data if db is empty or offline
+            const initialMocks = [
+                {
+                    id: 'mock-1',
+                    title: 'Día de playa con el grupo',
+                    type: 'photo',
+                    url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
+                    userName: 'Javi',
+                    date: '2026-06-15',
+                    tags: ['Playa', 'Verano']
+                },
+                {
+                    id: 'mock-2',
+                    title: 'Cena de cumpleaños',
+                    type: 'photo',
+                    url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80',
+                    userName: 'María',
+                    date: '2026-05-20',
+                    tags: ['Cumpleaños', 'Amigos']
+                },
+                {
+                    id: 'mock-3',
+                    title: 'Vídeo en las olas',
+                    type: 'video',
+                    url: 'https://assets.mixkit.co/videos/preview/mixkit-waves-in-the-water-1164-large.mp4',
+                    userName: 'Juan',
+                    date: '2026-07-02',
+                    tags: ['Olas', 'Mar']
+                }
+            ];
+
+            const savedLocal = JSON.parse(localStorage.getItem('local_gallery_media') || '[]');
+            window.appState.allMedia = [...savedLocal, ...initialMocks];
+            window.applyFilters();
+            window.renderUserTabs();
+        }
+
+        // Global function exposes for UI
+        window.saveMediaToFirestore = async function(mediaItem) {
+            if (window.appState.db) {
+                try {
+                    const colRef = collection(window.appState.db, 'artifacts', window.appState.appId, 'public', 'data', 'gallery_media');
+                    await addDoc(colRef, {
+                        ...mediaItem,
+                        createdAt: Date.now()
+                    });
+                } catch (e) {
+                    console.error("Error guardando:", e);
+                    saveToLocalStorage(mediaItem);
+                }
+            } else {
+                saveToLocalStorage(mediaItem);
+            }
+        };
+
+        function saveToLocalStorage(mediaItem) {
+            const savedLocal = JSON.parse(localStorage.getItem('local_gallery_media') || '[]');
+            savedLocal.unshift({ id: 'local-' + Date.now(), ...mediaItem });
+            localStorage.setItem('local_gallery_media', JSON.stringify(savedLocal));
+            loadFallbackLocalData();
+        }
+    </script>
+
+    <!-- UI Logic Script -->
+    <script>
+        // Init logic
+        document.addEventListener('DOMContentLoaded', () => {
+            updateActiveUserDisplay();
+        });
+
+        function updateActiveUserDisplay() {
+            const user = window.appState.currentUser;
+            document.getElementById('userNameDisplay').textContent = user;
+            document.getElementById('userAvatar').textContent = user.charAt(0).toUpperCase();
+            document.getElementById('uploadUserTag').textContent = user;
+        }
+
+        // Render User Filter Tabs
+        window.renderUserTabs = function() {
+            const tabBar = document.getElementById('usersTabBar');
+            const media = window.appState.allMedia || [];
+            
+            // Extract unique usernames
+            const usersMap = {};
+            media.forEach(m => {
+                const name = m.userName || 'Anónimo';
+                usersMap[name] = (usersMap[name] || 0) + 1;
+            });
+
+            // Rebuild tab items
+            let html = `
+                <button onclick="filterByUser('all')" id="userTab-all" class="user-tab-btn px-4 py-2 rounded-xl text-xs font-bold ${window.appState.activeCategoryUser === 'all' ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'} flex items-center gap-2 whitespace-nowrap transition-all">
+                    <i class="fa-solid fa-layer-group"></i> Todos los recuerdos (${media.length})
+                </button>
+            `;
+
+            Object.keys(usersMap).forEach(username => {
+                const isSelected = window.appState.activeCategoryUser === username;
+                html += `
+                    <button onclick="filterByUser('${username}')" id="userTab-${username}" class="user-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ${isSelected ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'} flex items-center gap-2 whitespace-nowrap transition-all">
+                        <span class="w-5 h-5 rounded-full ${isSelected ? 'bg-white text-brand-600' : 'bg-brand-500/20 text-brand-500'} flex items-center justify-center text-[10px] font-bold">
+                            ${username.charAt(0).toUpperCase()}
+                        </span>
+                        Fotos de ${username} (${usersMap[username]})
+                    </button>
+                `;
+            });
+
+            tabBar.innerHTML = html;
+        };
+
+        // Render Cards in Grid
+        window.renderGallery = function() {
+            const grid = document.getElementById('galleryGrid');
+            const emptyState = document.getElementById('emptyState');
+            const items = window.appState.filteredMedia || [];
+
+            grid.innerHTML = '';
+
+            if (items.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            items.forEach((item, index) => {
+                const isVideo = item.type === 'video';
+                const card = document.createElement('div');
+                card.className = 'group bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col';
+
+                card.innerHTML = `
+                    <div class="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-slate-800 cursor-pointer" onclick="openLightbox(${index})">
+                        ${isVideo 
+                            ? `<video src="${item.url}" class="w-full h-full object-cover"></video>` 
+                            : `<img src="${item.url}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">`
+                        }
+                        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                            ${isVideo 
+                                ? `<div class="w-12 h-12 rounded-full bg-brand-500 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"><i class="fa-solid fa-play text-lg ml-0.5"></i></div>`
+                                : `<div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><i class="fa-solid fa-expand"></i></div>`
+                            }
+                        </div>
+                        <span class="absolute top-3 left-3 px-2 py-0.5 rounded-md text-[10px] font-bold text-white ${isVideo ? 'bg-indigo-600' : 'bg-emerald-600'} uppercase shadow">
+                            ${isVideo ? '<i class="fa-solid fa-video mr-1"></i>Vídeo' : '<i class="fa-solid fa-image mr-1"></i>Foto'}
+                        </span>
+                    </div>
+
+                    <div class="p-4 flex-grow flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm line-clamp-1">${item.title}</h3>
+                            </div>
+                            <div class="flex items-center gap-1.5 text-xs text-brand-600 dark:text-brand-400 font-semibold mb-2">
+                                <i class="fa-solid fa-user-tag text-[10px]"></i>
+                                <span>Subido por ${item.userName || 'Anónimo'}</span>
+                            </div>
+                            <div class="flex flex-wrap gap-1 mb-3">
+                                ${(item.tags || []).map(t => `<span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded text-[10px]">#${t}</span>`).join('')}
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                            <span class="text-slate-400 text-[10px]">${item.date || 'Reciente'}</span>
+                            <a href="${item.url}" download target="_blank" onclick="event.stopPropagation()" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white text-slate-700 dark:text-slate-300 rounded-lg font-medium transition-colors flex items-center gap-1 text-[11px]">
+                                <i class="fa-solid fa-download"></i> Descargar
+                            </a>
+                        </div>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+        };
+
+        // Filter Handlers
+        window.applyFilters = function() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const selectedUser = window.appState.activeCategoryUser;
+            const selectedType = window.appState.activeTypeFilter;
+
+            window.appState.filteredMedia = (window.appState.allMedia || []).filter(item => {
+                const matchesSearch = (item.title || '').toLowerCase().includes(search) || 
+                                      (item.userName || '').toLowerCase().includes(search) ||
+                                      (item.tags || []).some(t => t.toLowerCase().includes(search));
+
+                const matchesUser = selectedUser === 'all' || item.userName === selectedUser;
+                const matchesType = selectedType === 'all' || item.type === selectedType;
+
+                return matchesSearch && matchesUser && matchesType;
+            });
+
+            window.renderGallery();
+        };
+
+        window.filterByUser = function(userName) {
+            window.appState.activeCategoryUser = userName;
+            window.renderUserTabs();
+            window.applyFilters();
+        };
+
+        window.filterByType = function(type) {
+            window.appState.activeTypeFilter = type;
+            document.querySelectorAll('.type-btn').forEach(b => {
+                b.className = 'type-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 transition-all';
+            });
+            const activeBtn = document.getElementById(`typeBtn-${type}`);
+            if (activeBtn) {
+                activeBtn.className = 'type-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm transition-all';
+            }
+            window.applyFilters();
+        };
+
+        // Modals & User creation
+        window.openProfileModal = function() {
+            const listContainer = document.getElementById('modalUsersList');
+            const media = window.appState.allMedia || [];
+            
+            // Unique users
+            const usersSet = new Set(['Javi', ...media.map(m => m.userName).filter(Boolean)]);
+            listContainer.innerHTML = '';
+
+            usersSet.forEach(u => {
+                const isCurrent = u === window.appState.currentUser;
+                const pill = document.createElement('button');
+                pill.type = 'button';
+                pill.onclick = () => window.switchActiveUser(u);
+                pill.className = `px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${isCurrent ? 'bg-brand-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'}`;
+                pill.innerHTML = `<i class="fa-solid fa-user text-[10px]"></i> ${u}`;
+                listContainer.appendChild(pill);
+            });
+
+            document.getElementById('profileModal').classList.remove('hidden');
+        };
+
+        window.closeProfileModal = function() {
+            document.getElementById('profileModal').classList.add('hidden');
+        };
+
+        window.switchActiveUser = function(userName) {
+            window.appState.currentUser = userName;
+            localStorage.setItem('active_gallery_user', userName);
+            updateActiveUserDisplay();
+            closeProfileModal();
+        };
+
+        window.handleCreateUser = function(e) {
+            e.preventDefault();
+            const input = document.getElementById('newUserNameInput');
+            const val = input.value.trim();
+            if (val) {
+                window.switchActiveUser(val);
+                input.value = '';
+            }
+        };
+
+        // Upload Form
+        window.openUploadModal = function() {
+            document.getElementById('uploadModal').classList.remove('hidden');
+        };
+
+        window.closeUploadModal = function() {
+            document.getElementById('uploadModal').classList.add('hidden');
+        };
+
+        window.setSourceTab = function(tab) {
+            window.appState.sourceTab = tab;
+            const tabFile = document.getElementById('tabBtnFile');
+            const tabUrl = document.getElementById('tabBtnUrl');
+            const containerFile = document.getElementById('fileInputContainer');
+            const containerUrl = document.getElementById('urlInputContainer');
+
+            if (tab === 'file') {
+                tabFile.className = 'pb-2 px-3 font-semibold text-brand-600 border-b-2 border-brand-500';
+                tabUrl.className = 'pb-2 px-3 font-semibold text-slate-400 border-b-2 border-transparent';
+                containerFile.classList.remove('hidden');
+                containerUrl.classList.add('hidden');
+            } else {
+                tabUrl.className = 'pb-2 px-3 font-semibold text-brand-600 border-b-2 border-brand-500';
+                tabFile.className = 'pb-2 px-3 font-semibold text-slate-400 border-b-2 border-transparent';
+                containerUrl.classList.remove('hidden');
+                containerFile.classList.add('hidden');
+            }
+        };
+
+        window.handleFileSelected = function(input) {
+            const file = input.files[0];
+            if (file) {
+                document.getElementById('fileNamePreview').textContent = `Seleccionado: ${file.name}`;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    window.appState.selectedFileDataUrl = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        window.handleUploadMedia = async function(e) {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitUploadBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Publicando...`;
+
+            const type = document.querySelector('input[name="mediaType"]:checked').value;
+            const title = document.getElementById('mediaTitleInput').value.trim();
+            const tagsStr = document.getElementById('mediaTagsInput').value;
+            const tags = tagsStr.split(',').map(t => t.trim()).filter(Boolean);
+
+            let mediaUrl = '';
+            if (window.appState.sourceTab === 'file') {
+                mediaUrl = window.appState.selectedFileDataUrl;
+            } else {
+                mediaUrl = document.getElementById('mediaUrlInput').value.trim();
+            }
+
+            if (!mediaUrl) {
+                alert('Por favor selecciona un archivo o introduce un enlace URL.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Publicar Recuerdo`;
+                return;
+            }
+
+            const newMedia = {
+                title: title,
+                type: type,
+                url: mediaUrl,
+                userName: window.appState.currentUser,
+                date: new Date().toISOString().split('T')[0],
+                tags: tags.length > 0 ? tags : ['General']
+            };
+
+            await window.saveMediaToFirestore(newMedia);
+
+            // Clean up and close
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Publicar Recuerdo`;
+            document.getElementById('mediaTitleInput').value = '';
+            document.getElementById('mediaTagsInput').value = '';
+            document.getElementById('mediaUrlInput').value = '';
+            document.getElementById('mediaFileInput').value = '';
+            document.getElementById('fileNamePreview').textContent = 'Haz clic para seleccionar foto o vídeo';
+            window.appState.selectedFileDataUrl = null;
+
+            closeUploadModal();
+        };
+
+        // Lightbox Functions
+        window.openLightbox = function(index) {
+            window.appState.currentLightboxIdx = index;
+            const item = window.appState.filteredMedia[index];
+            if (!item) return;
+
+            const modal = document.getElementById('lightboxModal');
+            document.getElementById('lbTitle').textContent = item.title;
+            document.getElementById('lbAuthor').textContent = item.userName || 'Anónimo';
+            document.getElementById('lbDate').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i> ${item.date || 'Reciente'}`;
+            document.getElementById('lbDownloadBtn').href = item.url;
+
+            const imgContainer = document.getElementById('lbImageContainer');
+            const videoContainer = document.getElementById('lbVideoContainer');
+            const img = document.getElementById('lbImage');
+            const video = document.getElementById('lbVideo');
+
+            if (item.type === 'video') {
+                imgContainer.classList.add('hidden');
+                videoContainer.classList.remove('hidden');
+                video.src = item.url;
+                video.play().catch(() => {});
+            } else {
+                videoContainer.classList.add('hidden');
+                video.pause();
+                imgContainer.classList.remove('hidden');
+                img.src = item.url;
+            }
+
+            modal.classList.remove('hidden');
+        };
+
+        window.closeLightbox = function() {
+            document.getElementById('lightboxModal').classList.add('hidden');
+            document.getElementById('lbVideo').pause();
+        };
+
+        window.nextMedia = function() {
+            const list = window.appState.filteredMedia;
+            if (list.length === 0) return;
+            window.appState.currentLightboxIdx = (window.appState.currentLightboxIdx + 1) % list.length;
+            window.openLightbox(window.appState.currentLightboxIdx);
+        };
+
+        window.prevMedia = function() {
+            const list = window.appState.filteredMedia;
+            if (list.length === 0) return;
+            window.appState.currentLightboxIdx = (window.appState.currentLightboxIdx - 1 + list.length) % list.length;
+            window.openLightbox(window.appState.currentLightboxIdx);
+        };
+
+        window.toggleTheme = function() {
+            document.documentElement.classList.toggle('dark');
+        };
+
+        window.toggleGuideModal = function() {
+            document.getElementById('guideModal').classList.toggle('hidden');
+        };
+    </script>
+</body>
+</html>
