@@ -78,6 +78,11 @@
                     <span>Añadir <span class="hidden sm:inline">Foto/Vídeo</span></span>
                 </button>
 
+                <!-- Admin (borrar fotos) -->
+                <button onclick="openAdminModal()" id="adminBtn" class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors" title="Modo administrador (borrar fotos)">
+                    <i id="adminBtnIcon" class="fa-solid fa-lock text-lg"></i>
+                </button>
+
                 <!-- Instructions Modal Toggle -->
                 <button onclick="toggleGuideModal()" class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors" title="Guía de configuración">
                     <i class="fa-brands fa-github text-lg"></i>
@@ -359,6 +364,45 @@
         </div>
     </div>
 
+    <!-- MODAL 5: Admin login (borrar fotos) -->
+    <div id="adminModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl relative">
+            <button onclick="closeAdminModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="text-center mb-5">
+                <div class="w-12 h-12 bg-brand-500/10 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Modo administrador</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Solo para poder borrar fotos.</p>
+            </div>
+
+            <form id="adminLoginSection" onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Usuario:</label>
+                    <input type="text" id="adminUserInput" value="Javier" readonly autocomplete="username" class="w-full p-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-500">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Contraseña:</label>
+                    <input type="password" id="adminPasswordInput" required autocomplete="current-password" class="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <p id="adminError" class="hidden text-xs text-red-500"></p>
+                <button type="submit" id="adminLoginBtn" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-xs shadow-md transition-all">
+                    Entrar
+                </button>
+            </form>
+
+            <div id="adminLoggedSection" class="hidden space-y-4 text-center">
+                <p class="text-xs text-slate-600 dark:text-slate-300">Sesión iniciada como <strong class="text-brand-500">Javier</strong>.<br>Ya ves el botón «Borrar» en cada foto.</p>
+                <button type="button" onclick="handleAdminLogout()" class="w-full py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
+                    Cerrar sesión
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- UI Logic Script -->
     <script>
         window.appState = {
@@ -368,6 +412,7 @@
             sourceTab: 'file',
             selectedFileDataUrl: null,
             fileProcessing: false,
+            isAdmin: false,
             lastCloudError: '',
             allMedia: [],
             filteredMedia: [],
@@ -479,6 +524,9 @@
                 const safeUrl = window.esc(item.url);
                 const safeTitle = window.esc(item.title);
                 const safeUser = window.esc(item.userName || 'Anónimo');
+                const deleteBtn = window.appState.isAdmin
+                    ? `<button type="button" onclick="event.stopPropagation(); requestDelete(${index})" class="px-2.5 py-1 bg-red-500/10 hover:bg-red-600 hover:text-white text-red-500 rounded-lg font-medium transition-colors flex items-center gap-1 text-[11px]"><i class="fa-solid fa-trash"></i> Borrar</button>`
+                    : '';
                 const card = document.createElement('div');
                 card.className = 'group bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col';
 
@@ -515,9 +563,12 @@
 
                         <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs">
                             <span class="text-slate-400 text-[10px]">${window.esc(item.date || 'Reciente')}</span>
-                            <a href="${safeUrl}" download target="_blank" onclick="event.stopPropagation()" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white text-slate-700 dark:text-slate-300 rounded-lg font-medium transition-colors flex items-center gap-1 text-[11px]">
-                                <i class="fa-solid fa-download"></i> Descargar
-                            </a>
+                            <div class="flex items-center gap-1.5">
+                                ${deleteBtn}
+                                <a href="${safeUrl}" download target="_blank" onclick="event.stopPropagation()" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white text-slate-700 dark:text-slate-300 rounded-lg font-medium transition-colors flex items-center gap-1 text-[11px]">
+                                    <i class="fa-solid fa-download"></i> Descargar
+                                </a>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -859,6 +910,100 @@
             window.openLightbox(window.appState.currentLightboxIdx);
         };
 
+        // ---------- Modo administrador (borrar fotos) ----------
+        window.updateAdminUI = function() {
+            const on = !!window.appState.isAdmin;
+            const icon = document.getElementById('adminBtnIcon');
+            const loginSection = document.getElementById('adminLoginSection');
+            const loggedSection = document.getElementById('adminLoggedSection');
+            if (icon) icon.className = on ? 'fa-solid fa-lock-open text-lg text-emerald-500' : 'fa-solid fa-lock text-lg';
+            if (loginSection) loginSection.classList.toggle('hidden', on);
+            if (loggedSection) loggedSection.classList.toggle('hidden', !on);
+            window.renderGallery();
+        };
+
+        window.openAdminModal = function() {
+            const err = document.getElementById('adminError');
+            if (err) { err.textContent = ''; err.classList.add('hidden'); }
+            document.getElementById('adminModal').classList.remove('hidden');
+            if (!window.appState.isAdmin) {
+                const pw = document.getElementById('adminPasswordInput');
+                if (pw) pw.focus();
+            }
+        };
+
+        window.closeAdminModal = function() {
+            document.getElementById('adminModal').classList.add('hidden');
+        };
+
+        window.handleAdminLogin = async function(e) {
+            e.preventDefault();
+            const input = document.getElementById('adminPasswordInput');
+            const btn = document.getElementById('adminLoginBtn');
+            const err = document.getElementById('adminError');
+            err.classList.add('hidden');
+            btn.disabled = true;
+            btn.textContent = 'Comprobando...';
+            try {
+                if (typeof window.adminLogin !== 'function') {
+                    throw { code: 'app/no-auth', message: 'El sistema de acceso no se ha cargado. Recarga la página (Ctrl+F5).' };
+                }
+                await window.adminLogin(input.value);
+                input.value = '';
+                closeAdminModal();
+            } catch (error) {
+                console.error('Error de acceso:', error);
+                const code = error && error.code ? error.code : '';
+                let msg;
+                if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found' || code === 'auth/invalid-login-credentials') {
+                    msg = 'Contraseña incorrecta (o el usuario administrador aún no está creado en Firebase).';
+                } else if (code === 'auth/operation-not-allowed') {
+                    msg = 'Falta activar «Correo/contraseña» en Firebase Authentication.';
+                } else if (code === 'auth/too-many-requests') {
+                    msg = 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.';
+                } else if (code === 'auth/network-request-failed') {
+                    msg = 'Sin conexión con Firebase. Comprueba tu internet.';
+                } else {
+                    msg = 'No se pudo entrar' + (code ? ' (' + code + ')' : '') + '.';
+                }
+                err.textContent = msg;
+                err.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Entrar';
+            }
+        };
+
+        window.handleAdminLogout = async function() {
+            try {
+                if (typeof window.adminLogout === 'function') await window.adminLogout();
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+            }
+            closeAdminModal();
+        };
+
+        window.requestDelete = async function(index) {
+            if (!window.appState.isAdmin) return;
+            const item = window.appState.filteredMedia[index];
+            if (!item) return;
+            if (!confirm('¿Borrar «' + (item.title || 'sin título') + '»?\n\nEsta acción no se puede deshacer.')) return;
+            try {
+                if (typeof window.deleteMediaItem !== 'function') {
+                    throw new Error('La conexión con Firebase no se ha cargado. Recarga la página (Ctrl+F5).');
+                }
+                await window.deleteMediaItem(item);
+            } catch (error) {
+                console.error('Error al borrar:', error);
+                const code = error && error.code ? error.code : '';
+                if (code === 'permission-denied') {
+                    alert('Firebase ha rechazado el borrado (permission-denied).\n\nComprueba que las reglas de Firestore están actualizadas y que tienes la sesión iniciada (candado en verde).');
+                } else {
+                    alert('No se ha podido borrar: ' + (error.message || code || error));
+                }
+            }
+        };
+
         window.toggleTheme = function() {
             document.documentElement.classList.toggle('dark');
         };
@@ -871,7 +1016,7 @@
     <!-- FIREBASE & APPLICATION SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBUN1hX24qVam1BYineFpAm8FouG1tYf28",
@@ -883,10 +1028,14 @@
             measurementId: "G-C3E8PYRWLQ"
         };
 
+        // Cuenta de administrador (el correo NO es secreto; la contraseña solo existe en Firebase Authentication)
+        const ADMIN_EMAIL = 'javier@fotos-javi.com';
+
         try {
             const app = initializeApp(firebaseConfig);
             window.appState.db = getFirestore(app);
             setupRealtimeListener();
+            initAuth(app);
         } catch (err) {
             console.error("Error al inicializar Firebase:", err);
             loadFallbackLocalData();
@@ -928,6 +1077,51 @@
             window.applyFilters();
             window.renderUserTabs();
         }
+
+        // El acceso de administrador se carga aparte: si fallara, la galería sigue funcionando igual.
+        async function initAuth(app) {
+            try {
+                const authMod = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+                const auth = authMod.getAuth(app);
+                window.appState.auth = auth;
+                window.adminLogin = (password) => authMod.signInWithEmailAndPassword(auth, ADMIN_EMAIL, password);
+                window.adminLogout = () => authMod.signOut(auth);
+                authMod.onAuthStateChanged(auth, (user) => {
+                    window.appState.isAdmin = !!user && user.email === ADMIN_EMAIL;
+                    window.updateAdminUI();
+                });
+            } catch (err) {
+                console.error('No se pudo cargar el acceso de administrador:', err);
+            }
+        }
+
+        // Borra una foto. Las de este navegador ('local-...') se quitan del almacenamiento local.
+        window.deleteMediaItem = async function(item) {
+            if (String(item.id).startsWith('local-')) {
+                let savedLocal = [];
+                try {
+                    savedLocal = JSON.parse(localStorage.getItem('local_gallery_media') || '[]');
+                } catch (e) {
+                    savedLocal = [];
+                }
+                savedLocal = savedLocal.filter(m => m.id !== item.id);
+                try {
+                    localStorage.setItem('local_gallery_media', JSON.stringify(savedLocal));
+                } catch (e) {
+                    console.warn('No se pudo actualizar el almacenamiento local:', e);
+                }
+                window.appState.allMedia = (window.appState.allMedia || []).filter(m => m.id !== item.id);
+                window.applyFilters();
+                window.renderUserTabs();
+                return 'local';
+            }
+            if (!window.appState.db) {
+                throw new Error('No hay conexión con Firebase.');
+            }
+            // La galería se actualiza sola cuando Firebase confirma el borrado (onSnapshot)
+            await deleteDoc(doc(window.appState.db, 'fotos', item.id));
+            return 'cloud';
+        };
 
         // Devuelve 'cloud' si se guardó en Firebase, o 'local' si solo se pudo guardar en este navegador.
         // Lanza un error si no se pudo guardar en ningún sitio.
