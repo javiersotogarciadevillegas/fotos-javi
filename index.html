@@ -161,6 +161,19 @@
             </div>
         </div>
 
+        <!-- Download bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <p id="galleryCountText" class="text-xs text-slate-500 dark:text-slate-400"></p>
+            <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="selectAllVisible()" class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all flex items-center gap-1.5">
+                    <i class="fa-regular fa-square-check text-brand-500"></i> <span id="selectAllLabel">Marcar todas las visibles</span>
+                </button>
+                <button type="button" onclick="openDownloadModal()" class="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-brand-500/20 transition-all flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-file-zipper"></i> Descargar…
+                </button>
+            </div>
+        </div>
+
         <!-- Gallery Grid -->
         <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <!-- Dynamic Media Cards -->
@@ -364,6 +377,92 @@
         </div>
     </div>
 
+    <!-- Barra flotante de selección -->
+    <div id="selectionBar" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 hidden max-w-[95vw] items-center gap-3 px-4 py-2.5 rounded-2xl bg-slate-900 dark:bg-slate-800 text-white shadow-2xl border border-white/10 text-xs flex">
+        <span id="selectionCount" class="font-semibold whitespace-nowrap">0 marcadas</span>
+        <button type="button" onclick="openDownloadModal('selected')" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 rounded-xl font-semibold flex items-center gap-1.5 whitespace-nowrap">
+            <i class="fa-solid fa-file-zipper"></i> Descargar
+        </button>
+        <button type="button" onclick="clearSelection()" class="text-slate-300 hover:text-white whitespace-nowrap">Quitar marcas</button>
+    </div>
+
+    <!-- MODAL 6: Descargar fotos -->
+    <div id="downloadModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeDownloadModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-5">
+                <div class="p-3 bg-brand-500/10 text-brand-600 rounded-2xl">
+                    <i class="fa-solid fa-file-zipper text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Descargar fotos</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Se bajan juntas en un único archivo ZIP.</p>
+                </div>
+            </div>
+
+            <form onsubmit="handleDownload(event)" onchange="updateDownloadSummary()" oninput="updateDownloadSummary()" class="space-y-3">
+                <label class="flex items-start gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer bg-slate-50 dark:bg-slate-800 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10">
+                    <input type="radio" name="dlMode" value="all" checked class="mt-0.5 accent-sky-500">
+                    <div class="text-xs">
+                        <span class="font-semibold text-slate-800 dark:text-slate-100">Todo el álbum</span>
+                        <span id="dlCountAll" class="text-slate-500 dark:text-slate-400"></span>
+                    </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer bg-slate-50 dark:bg-slate-800 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10">
+                    <input type="radio" name="dlMode" value="filtered" class="mt-0.5 accent-sky-500">
+                    <div class="text-xs">
+                        <span class="font-semibold text-slate-800 dark:text-slate-100">Lo que veo ahora</span>
+                        <span id="dlCountFiltered" class="text-slate-500 dark:text-slate-400"></span>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Según el participante, el tipo y la búsqueda elegidos.</p>
+                    </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer bg-slate-50 dark:bg-slate-800 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10">
+                    <input type="radio" name="dlMode" value="selected" class="mt-0.5 accent-sky-500">
+                    <div class="text-xs">
+                        <span class="font-semibold text-slate-800 dark:text-slate-100">Las que he marcado</span>
+                        <span id="dlCountSelected" class="text-slate-500 dark:text-slate-400"></span>
+                    </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 border border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer bg-slate-50 dark:bg-slate-800 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-500/10">
+                    <input type="radio" name="dlMode" value="range" class="mt-0.5 accent-sky-500">
+                    <div class="text-xs flex-grow">
+                        <span class="font-semibold text-slate-800 dark:text-slate-100">Un rango por número</span>
+                        <div class="flex items-center gap-2 mt-2">
+                            <span class="text-slate-500 dark:text-slate-400">Desde</span>
+                            <input type="number" id="dlFrom" min="1" step="1" onfocus="selectRangeMode()" class="w-20 p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <span class="text-slate-500 dark:text-slate-400">hasta</span>
+                            <input type="number" id="dlTo" min="1" step="1" onfocus="selectRangeMode()" class="w-20 p-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+                        <p id="dlRangeHint" class="text-[10px] text-slate-400 mt-1.5"></p>
+                    </div>
+                </label>
+
+                <p id="dlSummary" class="text-xs font-semibold text-brand-600 dark:text-brand-400 pt-1"></p>
+
+                <div id="dlProgressWrap" class="hidden space-y-1">
+                    <div class="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div id="dlProgressBar" class="h-full bg-brand-500 transition-all" style="width:0%"></div>
+                    </div>
+                    <p id="dlProgressText" class="text-[11px] text-slate-500 dark:text-slate-400"></p>
+                </div>
+
+                <p id="dlError" class="hidden text-xs text-red-500"></p>
+
+                <button type="submit" id="dlBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-bold rounded-xl text-xs shadow-lg transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Descargar ZIP</span>
+                </button>
+                <p class="text-[10px] text-slate-400 text-center">Los archivos se llaman, por ejemplo, 010_Fiesta_en_la_playa.jpg</p>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL 5: Admin login (borrar fotos) -->
     <div id="adminModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl relative">
@@ -413,6 +512,10 @@
             selectedFileDataUrl: null,
             fileProcessing: false,
             isAdmin: false,
+            selectedIds: new Set(),
+            lastSelectedIdx: null,
+            numberById: {},
+            downloading: false,
             lastCloudError: '',
             allMedia: [],
             filteredMedia: [],
@@ -514,6 +617,7 @@
 
             if (items.length === 0) {
                 if (emptyState) emptyState.classList.remove('hidden');
+                window.updateSelectionUI();
                 return;
             } else {
                 if (emptyState) emptyState.classList.add('hidden');
@@ -524,9 +628,12 @@
                 const safeUrl = window.esc(item.url);
                 const safeTitle = window.esc(item.title);
                 const safeUser = window.esc(item.userName || 'Anónimo');
+                const safeId = window.esc(item.id);
                 const deleteBtn = window.appState.isAdmin
                     ? `<button type="button" onclick="event.stopPropagation(); requestDelete(${index})" class="px-2.5 py-1 bg-red-500/10 hover:bg-red-600 hover:text-white text-red-500 rounded-lg font-medium transition-colors flex items-center gap-1 text-[11px]"><i class="fa-solid fa-trash"></i> Borrar</button>`
                     : '';
+                const num = window.appState.numberById[item.id] || '?';
+                const isSel = window.appState.selectedIds.has(item.id);
                 const card = document.createElement('div');
                 card.className = 'group bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col';
 
@@ -545,6 +652,8 @@
                         <span class="absolute top-3 left-3 px-2 py-0.5 rounded-md text-[10px] font-bold text-white ${isVideo ? 'bg-indigo-600' : 'bg-emerald-600'} uppercase shadow">
                             ${isVideo ? '<i class="fa-solid fa-video mr-1"></i>Vídeo' : '<i class="fa-solid fa-image mr-1"></i>Foto'}
                         </span>
+                        <span class="absolute bottom-3 left-3 px-2 py-0.5 rounded-md text-[10px] font-bold text-white bg-black/60 shadow">#${num}</span>
+                        <button type="button" class="sel-btn ${window.selBtnClass(isSel)}" data-sel-id="${safeId}" onclick="toggleSelect(event, ${index})" title="Marcar para descargar (Mayús + clic marca un tramo)" aria-label="Marcar para descargar"><i class="fa-solid fa-check text-[11px]"></i></button>
                     </div>
 
                     <div class="p-4 flex-grow flex flex-col justify-between">
@@ -575,9 +684,12 @@
 
                 grid.appendChild(card);
             });
+
+            window.updateSelectionUI();
         };
 
         window.applyFilters = function() {
+            window.recomputeNumbers();
             const searchInput = document.getElementById('searchInput');
             const search = searchInput ? searchInput.value.toLowerCase() : '';
             const selectedUser = window.appState.activeCategoryUser;
@@ -866,7 +978,8 @@
             if (!item) return;
 
             const modal = document.getElementById('lightboxModal');
-            document.getElementById('lbTitle').textContent = item.title;
+            document.getElementById('lbTitle').textContent = '#' + (window.appState.numberById[item.id] || '?') + ' · ' + item.title;
+            document.getElementById('lbBadge').textContent = item.type === 'video' ? 'VÍDEO' : 'FOTO';
             document.getElementById('lbAuthor').textContent = item.userName || 'Anónimo';
             document.getElementById('lbDate').innerHTML = `<i class="fa-regular fa-calendar mr-1"></i> ${window.esc(item.date || 'Reciente')}`;
             document.getElementById('lbDownloadBtn').href = item.url;
@@ -909,6 +1022,448 @@
             window.appState.currentLightboxIdx = (window.appState.currentLightboxIdx - 1 + list.length) % list.length;
             window.openLightbox(window.appState.currentLightboxIdx);
         };
+
+        // ---------- Numeración, selección y descarga ----------
+        const MAX_ZIP_BYTES = 800 * 1024 * 1024; // por encima de esto el navegador puede quedarse sin memoria
+
+        // Número de cada foto: 1 = la más antigua. Así el número no cambia cuando alguien sube una nueva.
+        window.recomputeNumbers = function() {
+            const all = window.appState.allMedia || [];
+            const keyOf = (m) => {
+                if (typeof m.createdAt === 'number') return m.createdAt;
+                const mt = String(m.id || '').match(/^local-(\d+)$/);
+                return mt ? Number(mt[1]) : 0;
+            };
+            const sorted = all.slice().sort((a, b) => (keyOf(a) - keyOf(b)) || String(a.id).localeCompare(String(b.id)));
+            const map = {};
+            sorted.forEach((m, i) => { map[m.id] = i + 1; });
+            window.appState.numberById = map;
+
+            // Quita de la selección las fotos que ya no existen (por ejemplo, borradas)
+            const ids = new Set(all.map(m => m.id));
+            window.appState.selectedIds.forEach(id => {
+                if (!ids.has(id)) window.appState.selectedIds.delete(id);
+            });
+        };
+
+        window.selBtnClass = function(isSel) {
+            return 'absolute top-3 right-3 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ' +
+                (isSel ? 'bg-brand-500 border-brand-500 text-white' : 'bg-black/40 border-white/80 text-transparent hover:bg-black/60');
+        };
+
+        function getSelectedItems() {
+            const sel = window.appState.selectedIds;
+            return (window.appState.allMedia || []).filter(m => sel.has(m.id));
+        }
+
+        // Actualiza casillas, barra flotante y contadores sin volver a dibujar las fotos
+        window.updateSelectionUI = function() {
+            const sel = window.appState.selectedIds;
+            document.querySelectorAll('.sel-btn').forEach(b => {
+                b.className = 'sel-btn ' + window.selBtnClass(sel.has(b.dataset.selId));
+            });
+
+            const n = sel.size;
+            const bar = document.getElementById('selectionBar');
+            if (bar) bar.classList.toggle('hidden', n === 0);
+            const countEl = document.getElementById('selectionCount');
+            if (countEl) countEl.textContent = n + (n === 1 ? ' marcada' : ' marcadas');
+
+            const visible = window.appState.filteredMedia || [];
+            const total = (window.appState.allMedia || []).length;
+            const info = document.getElementById('galleryCountText');
+            if (info) {
+                info.textContent = total === 0 ? '' :
+                    'Mostrando ' + visible.length + ' de ' + total + (total === 1 ? ' recuerdo' : ' recuerdos') +
+                    (n > 0 ? ' · ' + n + (n === 1 ? ' marcada' : ' marcadas') : '');
+            }
+
+            const label = document.getElementById('selectAllLabel');
+            if (label) {
+                const allSel = visible.length > 0 && visible.every(m => sel.has(m.id));
+                label.textContent = allSel ? 'Quitar marcas de las visibles' : 'Marcar todas las visibles';
+            }
+        };
+
+        window.toggleSelect = function(e, index) {
+            e.stopPropagation();
+            const list = window.appState.filteredMedia || [];
+            const item = list[index];
+            if (!item) return;
+            const sel = window.appState.selectedIds;
+            const willSelect = !sel.has(item.id);
+            const last = window.appState.lastSelectedIdx;
+
+            if (e.shiftKey && last !== null && list[last]) {
+                const a = Math.min(last, index);
+                const b = Math.max(last, index);
+                for (let i = a; i <= b; i++) {
+                    if (willSelect) sel.add(list[i].id); else sel.delete(list[i].id);
+                }
+            } else {
+                if (willSelect) sel.add(item.id); else sel.delete(item.id);
+            }
+            window.appState.lastSelectedIdx = index;
+            window.updateSelectionUI();
+            if (!document.getElementById('downloadModal').classList.contains('hidden')) window.updateDownloadSummary();
+        };
+
+        window.selectAllVisible = function() {
+            const list = window.appState.filteredMedia || [];
+            if (list.length === 0) return;
+            const sel = window.appState.selectedIds;
+            const allSel = list.every(m => sel.has(m.id));
+            list.forEach(m => { if (allSel) sel.delete(m.id); else sel.add(m.id); });
+            window.updateSelectionUI();
+        };
+
+        window.clearSelection = function() {
+            window.appState.selectedIds.clear();
+            window.appState.lastSelectedIdx = null;
+            window.updateSelectionUI();
+        };
+
+        // <zip-helpers>
+        // Creador de ZIP propio (sin compresión: las fotos JPG/vídeos ya vienen comprimidos). No depende de ninguna librería externa.
+        const CRC_TABLE = (function() {
+            const t = new Uint32Array(256);
+            for (let n = 0; n < 256; n++) {
+                let c = n;
+                for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+                t[n] = c >>> 0;
+            }
+            return t;
+        })();
+
+        function crc32(bytes) {
+            let c = 0xFFFFFFFF;
+            for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+            return (c ^ 0xFFFFFFFF) >>> 0;
+        }
+
+        // files: [{ name: 'texto', data: Uint8Array }]
+        function buildZip(files) {
+            const enc = new TextEncoder();
+            const now = new Date();
+            const dosTime = ((now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1)) & 0xFFFF;
+            const dosDate = ((((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate())) & 0xFFFF;
+            const parts = [];
+            const central = [];
+            let offset = 0;
+            let centralSize = 0;
+
+            for (const f of files) {
+                const nameBytes = enc.encode(f.name);
+                const crc = crc32(f.data);
+                const size = f.data.length;
+
+                const lh = new DataView(new ArrayBuffer(30));
+                lh.setUint32(0, 0x04034b50, true);
+                lh.setUint16(4, 20, true);
+                lh.setUint16(6, 0x0800, true);      // nombres en UTF-8
+                lh.setUint16(8, 0, true);           // sin compresión
+                lh.setUint16(10, dosTime, true);
+                lh.setUint16(12, dosDate, true);
+                lh.setUint32(14, crc, true);
+                lh.setUint32(18, size, true);
+                lh.setUint32(22, size, true);
+                lh.setUint16(26, nameBytes.length, true);
+                lh.setUint16(28, 0, true);
+                parts.push(lh.buffer, nameBytes, f.data);
+
+                const ch = new DataView(new ArrayBuffer(46));
+                ch.setUint32(0, 0x02014b50, true);
+                ch.setUint16(4, 20, true);
+                ch.setUint16(6, 20, true);
+                ch.setUint16(8, 0x0800, true);
+                ch.setUint16(10, 0, true);
+                ch.setUint16(12, dosTime, true);
+                ch.setUint16(14, dosDate, true);
+                ch.setUint32(16, crc, true);
+                ch.setUint32(20, size, true);
+                ch.setUint32(24, size, true);
+                ch.setUint16(28, nameBytes.length, true);
+                ch.setUint16(30, 0, true);
+                ch.setUint16(32, 0, true);
+                ch.setUint16(34, 0, true);
+                ch.setUint16(36, 0, true);
+                ch.setUint32(38, 0, true);
+                ch.setUint32(42, offset, true);
+                central.push(ch.buffer, nameBytes);
+                centralSize += 46 + nameBytes.length;
+
+                offset += 30 + nameBytes.length + size;
+            }
+
+            const end = new DataView(new ArrayBuffer(22));
+            end.setUint32(0, 0x06054b50, true);
+            end.setUint16(4, 0, true);
+            end.setUint16(6, 0, true);
+            end.setUint16(8, files.length, true);
+            end.setUint16(10, files.length, true);
+            end.setUint32(12, centralSize, true);
+            end.setUint32(16, offset, true);
+            end.setUint16(20, 0, true);
+
+            return new Blob(parts.concat(central, [end.buffer]), { type: 'application/zip' });
+        }
+
+        const MIME_EXT = {
+            'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif',
+            'image/avif': 'avif', 'image/bmp': 'bmp', 'video/mp4': 'mp4', 'video/webm': 'webm',
+            'video/quicktime': 'mov', 'video/ogg': 'ogv'
+        };
+
+        // Nombre de archivo seguro (sin tildes ni símbolos raros) para que funcione en cualquier sistema
+        function safeFileName(title) {
+            let s = String(title || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+            s = s.replace(/[^A-Za-z0-9._ -]+/g, '').trim().replace(/\s+/g, '_').replace(/^[._-]+|[._-]+$/g, '');
+            if (s.length > 60) s = s.slice(0, 60);
+            return s || 'sin_titulo';
+        }
+
+        function guessExt(item, mime) {
+            const m = String(mime || '').split(';')[0].trim().toLowerCase();
+            if (MIME_EXT[m]) return MIME_EXT[m];
+            const u = String(item.url || '');
+            if (u.startsWith('data:')) {
+                const mm = u.slice(5, u.indexOf(';'));
+                if (MIME_EXT[mm]) return MIME_EXT[mm];
+            } else {
+                try {
+                    const mt = new URL(u).pathname.match(/\.([A-Za-z0-9]{2,5})$/);
+                    if (mt) return mt[1].toLowerCase();
+                } catch (e) { /* URL no válida: se usa la extensión por defecto */ }
+            }
+            return item.type === 'video' ? 'mp4' : 'jpg';
+        }
+        // </zip-helpers>
+
+        function triggerBlobDownload(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
+        }
+
+        async function fetchBytes(url) {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 60000);
+            try {
+                const res = await fetch(url, { signal: ctrl.signal });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const buf = await res.arrayBuffer();
+                return { bytes: new Uint8Array(buf), mime: res.headers.get('content-type') || '' };
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        function estimateBytes(item) {
+            const u = String(item.url || '');
+            if (u.startsWith('data:')) {
+                const i = u.indexOf(',');
+                return Math.round((u.length - i - 1) * 0.75);
+            }
+            return null; // enlace externo: tamaño desconocido
+        }
+
+        window.getDownloadEntries = function() {
+            const checked = document.querySelector('input[name="dlMode"]:checked');
+            const mode = checked ? checked.value : 'all';
+            const all = window.appState.allMedia || [];
+            const nums = window.appState.numberById;
+            let items;
+
+            if (mode === 'all') {
+                items = all;
+            } else if (mode === 'filtered') {
+                items = window.appState.filteredMedia || [];
+            } else if (mode === 'selected') {
+                items = getSelectedItems();
+            } else {
+                let from = parseInt(document.getElementById('dlFrom').value, 10);
+                let to = parseInt(document.getElementById('dlTo').value, 10);
+                if (isNaN(from) || isNaN(to)) {
+                    return { entries: [], error: 'Escribe el número inicial y el final.', mode: mode };
+                }
+                if (from > to) { const tmp = from; from = to; to = tmp; }
+                items = all.filter(m => nums[m.id] >= from && nums[m.id] <= to);
+            }
+
+            const entries = items.map(item => ({ item: item, num: nums[item.id] })).sort((a, b) => a.num - b.num);
+            return { entries: entries, error: '', mode: mode };
+        };
+
+        window.updateDownloadSummary = function() {
+            const all = window.appState.allMedia || [];
+            const setText = (id, t) => { const el = document.getElementById(id); if (el) el.textContent = t; };
+            setText('dlCountAll', ' (' + all.length + ')');
+            setText('dlCountFiltered', ' (' + (window.appState.filteredMedia || []).length + ')');
+            setText('dlCountSelected', ' (' + window.appState.selectedIds.size + ')');
+            setText('dlRangeHint', all.length > 0
+                ? 'Del 1 (la más antigua) al ' + all.length + ' (la última subida). El número sale en cada foto como #.'
+                : 'Todavía no hay fotos.');
+
+            const res = window.getDownloadEntries();
+            let text;
+            if (res.error) {
+                text = res.error;
+            } else {
+                const n = res.entries.length;
+                let known = 0;
+                let unknown = 0;
+                res.entries.forEach(e => {
+                    const b = estimateBytes(e.item);
+                    if (b === null) unknown++; else known += b;
+                });
+                text = 'Se descargarán ' + n + (n === 1 ? ' archivo' : ' archivos');
+                if (n > 0) {
+                    const mb = known / (1024 * 1024);
+                    text += ' (≈ ' + (mb < 0.1 ? '<0,1' : mb.toFixed(1).replace('.', ',')) + ' MB';
+                    if (unknown > 0) text += ' + ' + unknown + (unknown === 1 ? ' enlace externo' : ' enlaces externos') + ' de tamaño desconocido';
+                    text += ')';
+                }
+            }
+            setText('dlSummary', text);
+        };
+
+        window.selectRangeMode = function() {
+            const r = document.querySelector('input[name="dlMode"][value="range"]');
+            if (r) r.checked = true;
+            window.updateDownloadSummary();
+        };
+
+        window.openDownloadModal = function(preferred) {
+            const hasSel = window.appState.selectedIds.size > 0;
+            const mode = preferred || (hasSel ? 'selected' : 'all');
+            const radio = document.querySelector('input[name="dlMode"][value="' + mode + '"]');
+            if (radio) radio.checked = true;
+
+            const total = (window.appState.allMedia || []).length;
+            const from = document.getElementById('dlFrom');
+            const to = document.getElementById('dlTo');
+            if (!from.value) from.value = total > 0 ? 1 : '';
+            if (!to.value) to.value = total > 0 ? total : '';
+            from.max = to.max = total;
+
+            document.getElementById('dlError').classList.add('hidden');
+            document.getElementById('dlProgressWrap').classList.add('hidden');
+            window.updateDownloadSummary();
+            document.getElementById('downloadModal').classList.remove('hidden');
+        };
+
+        window.closeDownloadModal = function() {
+            if (window.appState.downloading) return;
+            document.getElementById('downloadModal').classList.add('hidden');
+        };
+
+        window.handleDownload = async function(e) {
+            e.preventDefault();
+            if (window.appState.downloading) return;
+
+            const errEl = document.getElementById('dlError');
+            const btn = document.getElementById('dlBtn');
+            const wrap = document.getElementById('dlProgressWrap');
+            const bar = document.getElementById('dlProgressBar');
+            const progressText = document.getElementById('dlProgressText');
+            const showErr = (m) => { errEl.textContent = m; errEl.classList.remove('hidden'); };
+            const setProgress = (done, totalN, text) => {
+                bar.style.width = Math.round((done / totalN) * 100) + '%';
+                progressText.textContent = text;
+            };
+            errEl.classList.add('hidden');
+
+            const res = window.getDownloadEntries();
+            if (res.error) { showErr(res.error); return; }
+            const entries = res.entries;
+            if (entries.length === 0) {
+                showErr('No hay fotos que descargar con esa opción.');
+                return;
+            }
+
+            window.appState.downloading = true;
+            btn.disabled = true;
+            wrap.classList.remove('hidden');
+
+            const files = [];
+            const failed = [];
+            let totalBytes = 0;
+            const width = Math.max(3, String((window.appState.allMedia || []).length).length);
+
+            try {
+                for (let i = 0; i < entries.length; i++) {
+                    const item = entries[i].item;
+                    const num = entries[i].num;
+                    setProgress(i, entries.length, 'Preparando ' + (i + 1) + ' de ' + entries.length + '...');
+                    try {
+                        const got = await fetchBytes(item.url);
+                        totalBytes += got.bytes.length;
+                        if (totalBytes > MAX_ZIP_BYTES) {
+                            const big = new Error('Son demasiados datos para un solo ZIP (más de 800 MB). Descárgalas por tandas usando un rango de números más pequeño.');
+                            big.tooBig = true;
+                            throw big;
+                        }
+                        const name = String(num).padStart(width, '0') + '_' + safeFileName(item.title) + '.' + guessExt(item, got.mime);
+                        files.push({ name: name, data: got.bytes, mime: got.mime });
+                    } catch (err) {
+                        if (err.tooBig) throw err;
+                        console.warn('No se pudo incluir #' + num + ':', err);
+                        failed.push('#' + num + ' ' + (item.title || ''));
+                    }
+                }
+
+                if (files.length === 0) {
+                    throw new Error('No se ha podido descargar ninguna. Si son enlaces externos, esa web puede no permitir copiarlos: usa el botón «Descargar» de cada foto.');
+                }
+
+                setProgress(entries.length, entries.length, 'Creando el archivo...');
+                await new Promise(r => setTimeout(r, 30));
+
+                if (files.length === 1) {
+                    triggerBlobDownload(new Blob([files[0].data], { type: files[0].mime || 'application/octet-stream' }), files[0].name);
+                } else {
+                    const date = new Date().toISOString().slice(0, 10);
+                    triggerBlobDownload(buildZip(files), 'album_fotos_' + date + '_' + files.length + 'fotos.zip');
+                }
+
+                document.getElementById('downloadModal').classList.add('hidden');
+                if (failed.length > 0) {
+                    alert('Se han descargado ' + files.length + ' de ' + entries.length + '.\n\nNo se han podido incluir:\n- ' + failed.join('\n- ') + '\n\nSuelen ser enlaces externos que no permiten copiarse. Usa el botón «Descargar» de cada una.');
+                }
+            } catch (err) {
+                console.error('Error en la descarga:', err);
+                showErr(err.message || String(err));
+            } finally {
+                window.appState.downloading = false;
+                btn.disabled = false;
+                wrap.classList.add('hidden');
+                bar.style.width = '0%';
+            }
+        };
+
+        // Atajos de teclado: Esc cierra ventanas; ← → cambian de foto en el visor
+        document.addEventListener('keydown', function(e) {
+            const lb = document.getElementById('lightboxModal');
+            const lbOpen = lb && !lb.classList.contains('hidden');
+            if (e.key === 'Escape') {
+                if (lbOpen) { window.closeLightbox(); return; }
+                ['adminModal', 'profileModal', 'uploadModal', 'guideModal', 'downloadModal'].forEach(function(id) {
+                    const m = document.getElementById(id);
+                    if (!m || m.classList.contains('hidden')) return;
+                    if (id === 'downloadModal' && window.appState.downloading) return;
+                    m.classList.add('hidden');
+                });
+                return;
+            }
+            if (!lbOpen) return;
+            if (e.key === 'ArrowRight') window.nextMedia();
+            else if (e.key === 'ArrowLeft') window.prevMedia();
+        });
 
         // ---------- Modo administrador (borrar fotos) ----------
         window.updateAdminUI = function() {
