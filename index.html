@@ -30,6 +30,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        html, body { overflow-x: hidden; }
+        @media (max-width: 640px) {
+            input, select, textarea { font-size: 16px !important; }
+        }
+        .scrollbar-none { scrollbar-width: none; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
         .glass {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
@@ -50,41 +56,36 @@
 
     <!-- Header / Nav -->
     <header class="sticky top-0 z-40 glass border-b border-slate-200 dark:border-slate-800 transition-colors">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="p-2.5 bg-gradient-to-tr from-brand-600 to-indigo-600 text-white rounded-xl shadow-md">
-                    <i class="fa-solid fa-users-rectangle text-xl"></i>
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div class="p-2 sm:p-2.5 bg-gradient-to-tr from-brand-600 to-indigo-600 text-white rounded-xl shadow-md shrink-0">
+                    <i class="fa-solid fa-users-rectangle text-base sm:text-xl"></i>
                 </div>
-                <div>
-                    <h1 class="text-base sm:text-lg font-bold bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                <div class="hidden sm:block">
+                    <h1 class="text-lg font-bold bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
                         Álbum Compartido
                     </h1>
-                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium hidden sm:block">Fotos de Javi y amigos</p>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Fotos de Javi y amigos</p>
                 </div>
             </div>
 
             <!-- Profile & Action Buttons -->
-            <div class="flex items-center gap-2 sm:gap-3">
-                <!-- User Profile Active Pill -->
-                <button onclick="openAccountModal()" id="activeUserBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-brand-500 transition-all text-xs font-semibold shadow-sm">
-                    <span class="w-6 h-6 rounded-full bg-brand-500 text-white flex items-center justify-center text-[10px]" id="userAvatar"><i class="fa-solid fa-user"></i></span>
-                    <span class="truncate max-w-[90px] sm:max-w-[120px]" id="userNameDisplay">Entrar</span>
-                    <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
+            <div class="flex items-center gap-1.5 sm:gap-3 min-w-0">
+                <button onclick="openAccountModal()" id="activeUserBtn" class="flex items-center gap-1.5 sm:gap-2 pl-1.5 pr-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-brand-500 transition-all text-sm font-semibold shadow-sm min-w-0">
+                    <span class="w-7 h-7 sm:w-6 sm:h-6 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs shrink-0" id="userAvatar"><i class="fa-solid fa-user"></i></span>
+                    <span class="truncate max-w-[80px] sm:max-w-[140px]" id="userNameDisplay">Entrar</span>
                 </button>
 
-                <!-- Add Media Button -->
-                <button onclick="openUploadModal()" class="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-md shadow-brand-500/20 transition-all flex items-center gap-1.5 active:scale-95">
+                <button onclick="openUploadModal()" class="px-3 sm:px-3.5 py-2 sm:py-1.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-brand-500/20 transition-all flex items-center gap-1.5 active:scale-95 shrink-0">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
-                    <span>Subir <span class="hidden sm:inline">fotos</span></span>
+                    <span>Subir</span>
                 </button>
 
-                <!-- Cómo funciona -->
-                <button onclick="toggleGuideModal()" class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors" title="¿Cómo funciona?">
-                    <i class="fa-solid fa-circle-question text-lg"></i>
+                <button onclick="toggleGuideModal()" class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors shrink-0" title="¿Cómo funciona?" aria-label="¿Cómo funciona?">
+                    <i class="fa-solid fa-circle-question text-xl"></i>
                 </button>
 
-                <!-- Dark Mode Toggle -->
-                <button onclick="toggleTheme()" class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors" title="Cambiar tema">
+                <button onclick="toggleTheme()" class="hidden sm:block p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors" title="Cambiar tema">
                     <i class="fa-solid fa-moon text-lg hidden dark:block"></i>
                     <i class="fa-solid fa-sun text-lg block dark:hidden"></i>
                 </button>
@@ -93,90 +94,77 @@
     </header>
 
     <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 flex-grow w-full">
         
-        <!-- Hero Section -->
-        <div class="mb-8 text-center sm:text-left flex flex-col sm:flex-row justify-between items-center gap-4 bg-gradient-to-r from-brand-500/10 via-indigo-500/5 to-transparent p-6 rounded-3xl border border-brand-500/10">
+        <!-- Hero Section (solo si no has entrado) -->
+        <div id="heroSection" class="mb-4 sm:mb-8 text-center sm:text-left flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 bg-gradient-to-r from-brand-500/10 via-indigo-500/5 to-transparent p-4 sm:p-6 rounded-3xl border border-brand-500/10">
             <div>
-                <span class="px-3 py-1 rounded-full text-xs font-bold bg-brand-500/20 text-brand-600 dark:text-brand-400 inline-block mb-2">
-                    <i class="fa-solid fa-globe mr-1"></i> Sincronizado en Tiempo Real
-                </span>
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                <h2 class="text-xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                     Galería Colaborativa
                 </h2>
-                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
+                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
                     Sube tus recuerdos al grupo. La primera vez crea tu cuenta; después solo tienes que entrar y subir tus fotos.
                 </p>
             </div>
-
-            <div class="flex flex-wrap justify-center gap-2">
-                <button onclick="toggleGuideModal()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl shadow-sm hover:shadow-md transition-all text-xs font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-circle-question"></i>
-                    <span>¿Primera vez? Mira cómo funciona</span>
+            
+            <div class="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
+                <button onclick="toggleGuideModal()" class="px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm text-sm font-bold flex items-center justify-center gap-2 text-slate-700 dark:text-slate-200">
+                    <i class="fa-solid fa-circle-question text-brand-500"></i>
+                    <span>Cómo funciona</span>
                 </button>
-                <button onclick="openAccountModal()" id="heroAccountBtn" class="px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm hover:shadow-md transition-all text-xs font-bold flex items-center gap-2 text-slate-700 dark:text-slate-200">
-                    <i class="fa-solid fa-user-plus text-brand-500"></i>
-                    <span id="heroAccountLabel">Entrar o crear cuenta</span>
+                <button onclick="openAccountModal()" class="px-3 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl shadow-sm text-sm font-bold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Entrar</span>
                 </button>
             </div>
         </div>
 
         <!-- Filter Toolbar -->
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-800 mb-8 space-y-4">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-200 dark:border-slate-800 mb-3 sm:mb-6 space-y-3">
             
             <!-- User Tabs (Filter by author) -->
-            <div>
-                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                    <i class="fa-solid fa-users mr-1"></i> Filtrar por participante:
-                </label>
-                <div id="usersTabBar" class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-                    <button onclick="filterByUser('all')" id="userTab-all" class="user-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-brand-500 text-white shadow-sm flex items-center gap-2 whitespace-nowrap transition-all">
-                        <i class="fa-solid fa-layer-group"></i> Todos los recuerdos (<span id="count-user-all">0</span>)
-                    </button>
-                </div>
+            <div id="usersTabBar" class="flex items-center gap-2 overflow-x-auto scrollbar-none -mx-1 px-1">
+                <button onclick="filterByUser('all')" id="userTab-all" class="user-tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-brand-500 text-white shadow-sm flex items-center gap-2 whitespace-nowrap transition-all">
+                    <i class="fa-solid fa-layer-group"></i> Todas (<span id="count-user-all">0</span>)
+                </button>
             </div>
 
-            <hr class="border-slate-100 dark:border-slate-800">
-
             <!-- Search and Media Type Filters -->
-            <div class="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
-                
-                <!-- Search Box -->
-                <div class="relative flex-grow max-w-md">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Buscar por título, etiquetas o usuario..." class="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all">
+            <div class="flex gap-2 items-center">
+                <div class="relative flex-grow min-w-0">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="search" id="searchInput" oninput="applyFilters()" placeholder="Buscar..." class="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all">
                 </div>
 
-                <!-- Media Type Buttons -->
-                <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl">
+                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl shrink-0">
                     <button onclick="filterByType('all')" id="typeBtn-all" class="type-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white dark:bg-slate-700 text-brand-600 dark:text-brand-400 shadow-sm transition-all">
-                        Todos
+                        Todo
                     </button>
-                    <button onclick="filterByType('photo')" id="typeBtn-photo" class="type-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 transition-all">
-                        <i class="fa-solid fa-image mr-1"></i> Fotos
+                    <button onclick="filterByType('photo')" id="typeBtn-photo" class="type-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 transition-all" title="Solo fotos" aria-label="Solo fotos">
+                        <i class="fa-solid fa-image"></i><span class="hidden sm:inline ml-1">Fotos</span>
                     </button>
-                    <button onclick="filterByType('video')" id="typeBtn-video" class="type-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 transition-all">
-                        <i class="fa-solid fa-video mr-1"></i> Vídeos
+                    <button onclick="filterByType('video')" id="typeBtn-video" class="type-btn px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 transition-all" title="Solo vídeos" aria-label="Solo vídeos">
+                        <i class="fa-solid fa-video"></i><span class="hidden sm:inline ml-1">Vídeos</span>
                     </button>
                 </div>
             </div>
         </div>
 
         <!-- Download bar -->
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <p id="galleryCountText" class="text-xs text-slate-500 dark:text-slate-400"></p>
-            <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center justify-between gap-2 mb-3">
+            <p id="galleryCountText" class="text-xs text-slate-500 dark:text-slate-400 min-w-0 truncate"></p>
+            <div class="flex items-center gap-2 shrink-0">
                 <button type="button" onclick="selectAllVisible()" class="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all flex items-center gap-1.5">
-                    <i class="fa-regular fa-square-check text-brand-500"></i> <span id="selectAllLabel">Marcar todas las visibles</span>
+                    <i class="fa-regular fa-square-check text-brand-500"></i> <span id="selectAllLabel">Marcar todas</span>
                 </button>
-                <button type="button" onclick="openDownloadModal()" class="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-brand-500/20 transition-all flex items-center gap-1.5 active:scale-95">
-                    <i class="fa-solid fa-file-zipper"></i> Descargar…
+                <button type="button" onclick="openDownloadModal()" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-brand-500/20 transition-all flex items-center gap-1.5 active:scale-95" title="Descargar" aria-label="Descargar">
+                    <i class="fa-solid fa-file-zipper"></i><span class="hidden sm:inline">Descargar…</span>
                 </button>
             </div>
         </div>
 
         <!-- Gallery Grid -->
-        <div id="galleryGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div id="galleryGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-5">
             <!-- Dynamic Media Cards -->
         </div>
 
@@ -229,32 +217,21 @@
 
                 <form id="accLoginForm" onsubmit="handleLogin(event)" class="space-y-3">
                     <div>
-                        <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Correo electrónico:</label>
-                        <input type="email" id="loginEmail" required autocomplete="email" inputmode="email" class="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Tu nombre (el que pusiste al crear la cuenta):</label>
+                        <input type="text" id="loginName" required autocomplete="username" autocapitalize="words" class="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Contraseña:</label>
                         <input type="password" id="loginPassword" required autocomplete="current-password" class="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     </div>
                     <button type="submit" id="loginBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm shadow-md transition-all">Entrar</button>
-                    <details class="text-xs text-slate-500 dark:text-slate-400">
-                        <summary class="cursor-pointer text-brand-600 dark:text-brand-400 font-semibold">¿Has olvidado la contraseña?</summary>
-                        <div class="mt-2 space-y-2">
-                            <p>Ponte en contacto con <strong>Javi</strong> y él te la dirá.</p>
-                            <p>O escribe arriba tu correo y pulsa aquí para recibir un correo con el que cambiarla (mira también en «Spam»):</p>
-                            <button type="button" onclick="handleResetPassword()" class="px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg font-semibold text-slate-700 dark:text-slate-200">Enviarme el correo</button>
-                        </div>
-                    </details>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 text-center">¿Has olvidado la contraseña? Pregúntale a <strong>Javi</strong> y te la dirá.</p>
                 </form>
 
                 <form id="accSignupForm" onsubmit="handleSignup(event)" class="hidden space-y-3">
                     <div>
                         <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Tu nombre (es el que verán los demás en tus fotos):</label>
-                        <input type="text" id="signupName" required maxlength="25" autocomplete="nickname" placeholder="Ej. María, Juan P., Tía Carmen..." class="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Tu correo electrónico:</label>
-                        <input type="email" id="signupEmail" required autocomplete="email" inputmode="email" class="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <input type="text" id="signupName" required maxlength="25" autocomplete="username" autocapitalize="words" placeholder="Ej. María, Juan P., Tía Carmen..." class="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     </div>
                     <div>
                         <label class="text-xs font-bold text-slate-600 dark:text-slate-400 block mb-1">Inventa una contraseña (mínimo 6 letras o números):</label>
@@ -264,6 +241,7 @@
                         <i class="fa-solid fa-circle-info mr-1"></i>
                         Javi, el administrador, <strong>podrá ver esta contraseña</strong> para dártela si algún día la olvidas.
                         Por eso, <strong>no uses la misma que en tu banco o en tu correo</strong>: inventa una solo para este álbum.
+                        <br>Para entrar las próximas veces solo necesitarás <strong>tu nombre y esta contraseña</strong>.
                     </p>
                     <button type="submit" id="signupBtn" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm shadow-md transition-all">Crear mi cuenta</button>
                 </form>
@@ -383,34 +361,34 @@
 
     <!-- MODAL 3: Lightbox Viewer -->
     <div id="lightboxModal" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-md flex flex-col justify-between">
-        <div class="p-4 flex justify-between items-center text-white z-10 bg-gradient-to-b from-black/80 to-transparent">
-            <div class="flex items-center gap-3 overflow-hidden">
-                <span id="lbBadge" class="px-2 py-0.5 rounded text-xs font-bold bg-brand-600">FOTO</span>
-                <div>
+        <div class="p-3 sm:p-4 flex justify-between items-center gap-2 text-white z-10 bg-gradient-to-b from-black/80 to-transparent">
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                <span id="lbBadge" class="hidden sm:inline px-2 py-0.5 rounded text-xs font-bold bg-brand-600">FOTO</span>
+                <div class="min-w-0">
                     <h3 id="lbTitle" class="text-sm font-bold truncate">Título</h3>
-                    <p class="text-[10px] text-slate-400">Subido por <strong id="lbAuthor" class="text-brand-400">...</strong></p>
+                    <p class="text-xs text-slate-400 truncate">Subido por <strong id="lbAuthor" class="text-brand-400">...</strong></p>
                 </div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 shrink-0">
                 <a id="lbDownloadBtn" href="#" download target="_blank" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white text-xs font-medium px-3 flex items-center gap-1.5 transition-colors">
                     <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Descargar</span>
                 </a>
-                <button onclick="closeLightbox()" class="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white">
+                <button onclick="closeLightbox()" class="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl text-white flex items-center justify-center" aria-label="Cerrar">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
         </div>
 
-        <div class="relative flex-grow flex items-center justify-center p-4 overflow-hidden select-none">
-            <button onclick="prevMedia()" class="absolute left-3 z-10 p-3 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/10">
-                <i class="fa-solid fa-chevron-left text-xl"></i>
+        <div id="lbStage" class="relative flex-grow flex items-center justify-center p-2 sm:p-4 overflow-hidden select-none min-h-0">
+            <button onclick="prevMedia()" class="absolute left-1 sm:left-3 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-black/80 text-white border border-white/10 flex items-center justify-center" aria-label="Anterior">
+                <i class="fa-solid fa-chevron-left sm:text-xl"></i>
             </button>
-            <button onclick="nextMedia()" class="absolute right-3 z-10 p-3 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/10">
-                <i class="fa-solid fa-chevron-right text-xl"></i>
+            <button onclick="nextMedia()" class="absolute right-1 sm:right-3 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-black/80 text-white border border-white/10 flex items-center justify-center" aria-label="Siguiente">
+                <i class="fa-solid fa-chevron-right sm:text-xl"></i>
             </button>
 
             <div id="lbImageContainer" class="hidden max-w-full max-h-full flex items-center justify-center">
-                <img id="lbImage" src="" class="max-h-[80vh] max-w-full object-contain rounded-xl shadow-2xl">
+                <img id="lbImage" src="" class="max-h-[75vh] max-w-full object-contain rounded-xl shadow-2xl">
             </div>
 
             <div id="lbVideoContainer" class="hidden w-full max-w-4xl max-h-[80vh] flex items-center justify-center">
@@ -418,9 +396,10 @@
             </div>
         </div>
 
-        <div class="p-4 bg-gradient-to-t from-black/80 to-transparent text-white text-xs flex justify-between items-center">
-            <span id="lbDate" class="text-slate-400"><i class="fa-regular fa-calendar mr-1"></i> -</span>
-            <div id="lbTags" class="flex gap-1"></div>
+        <div class="p-3 sm:p-4 bg-gradient-to-t from-black/80 to-transparent text-white text-xs flex justify-between items-center gap-2">
+            <span id="lbDate" class="text-slate-400 shrink-0"><i class="fa-regular fa-calendar mr-1"></i> -</span>
+            <span class="sm:hidden text-slate-500 text-[11px]">Desliza ← → para pasar</span>
+            <div id="lbTags" class="flex flex-wrap justify-end gap-1"></div>
         </div>
     </div>
 
@@ -444,10 +423,10 @@
                     <ol class="list-decimal ml-5 space-y-1 text-[13px]">
                         <li>Pulsa el botón de arriba a la derecha donde pone <strong><i class="fa-solid fa-user"></i> Entrar</strong>.</li>
                         <li>Elige <strong>«Crear cuenta nueva»</strong>.</li>
-                        <li>Escribe <strong>tu nombre</strong> (el que verán los demás en tus fotos), <strong>tu correo</strong> y <strong>una contraseña</strong> que inventes (mínimo 6 letras o números).</li>
+                        <li>Escribe <strong>tu nombre</strong> (el que verán los demás en tus fotos) y <strong>una contraseña</strong> que inventes (mínimo 6 letras o números). <strong>No hace falta correo.</strong></li>
                         <li>Pulsa <strong>«Crear mi cuenta»</strong>. ¡Listo! Ya has entrado.</li>
                     </ol>
-                    <p class="text-[12px] mt-2 text-slate-500 dark:text-slate-400">Las próximas veces el móvil o el ordenador te recordará y entrarás directamente. Si no, pulsa <strong>Entrar → «Ya tengo cuenta»</strong> y escribe tu correo y tu contraseña.</p>
+                    <p class="text-[12px] mt-2 text-slate-500 dark:text-slate-400">Las próximas veces el móvil o el ordenador te recordará y entrarás directamente. Si no, pulsa <strong>Entrar → «Ya tengo cuenta»</strong> y escribe tu nombre y tu contraseña.</p>
                 </div>
 
                 <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
@@ -493,7 +472,7 @@
 
                 <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
                     <p class="font-bold text-slate-900 dark:text-white mb-2"><i class="fa-solid fa-key text-brand-500 mr-1"></i> ¿Has olvidado tu contraseña?</p>
-                    <p class="text-[13px]">Ponte en contacto con <strong>Javi</strong> y te la dirá. También puedes pulsar <strong>Entrar → «¿Has olvidado la contraseña?»</strong> para recibir un correo con el que cambiarla (si no lo ves, mira en «Spam»).</p>
+                    <p class="text-[13px]">Ponte en contacto con <strong>Javi</strong> y te la dirá.</p>
                 </div>
 
                 <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
@@ -645,7 +624,6 @@
             const nameEl = document.getElementById('userNameDisplay');
             const avatarEl = document.getElementById('userAvatar');
             const tagEl = document.getElementById('uploadUserTag');
-            const heroLabel = document.getElementById('heroAccountLabel');
             const name = st.user ? st.currentUser : null;
             if (nameEl) nameEl.textContent = name || (st.user ? 'Mi cuenta' : 'Entrar');
             if (avatarEl) {
@@ -653,7 +631,8 @@
                 else avatarEl.innerHTML = '<i class="fa-solid fa-user"></i>';
             }
             if (tagEl) tagEl.textContent = name || '';
-            if (heroLabel) heroLabel.textContent = st.user ? 'Mi cuenta' : 'Entrar o crear cuenta';
+            const hero = document.getElementById('heroSection');
+            if (hero) hero.classList.toggle('hidden', !!st.user);
         }
 
         // La primera vez que alguien abre el álbum en un móvil u ordenador, le enseñamos el tutorial
@@ -680,8 +659,8 @@
             });
 
             let html = `
-                <button onclick="filterByUser('all')" id="userTab-all" class="user-tab-btn px-4 py-2 rounded-xl text-xs font-bold ${window.appState.activeCategoryUser === 'all' ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'} flex items-center gap-2 whitespace-nowrap transition-all">
-                    <i class="fa-solid fa-layer-group"></i> Todos los recuerdos (${media.length})
+                <button onclick="filterByUser('all')" id="userTab-all" class="user-tab-btn px-4 py-2 rounded-xl text-sm font-bold ${window.appState.activeCategoryUser === 'all' ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'} flex items-center gap-2 whitespace-nowrap transition-all">
+                    <i class="fa-solid fa-layer-group"></i> Todas (${media.length})
                 </button>
             `;
 
@@ -689,11 +668,11 @@
                 const isSelected = window.appState.activeCategoryUser === username;
                 const safeName = window.esc(username);
                 html += `
-                    <button onclick="filterByUser(this.dataset.user)" data-user="${safeName}" class="user-tab-btn px-3.5 py-2 rounded-xl text-xs font-semibold ${isSelected ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'} flex items-center gap-2 whitespace-nowrap transition-all">
+                    <button onclick="filterByUser(this.dataset.user)" data-user="${safeName}" class="user-tab-btn px-3.5 py-2 rounded-xl text-sm font-semibold ${isSelected ? 'bg-brand-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'} flex items-center gap-2 whitespace-nowrap transition-all">
                         <span class="w-5 h-5 rounded-full ${isSelected ? 'bg-white text-brand-600' : 'bg-brand-500/20 text-brand-500'} flex items-center justify-center text-[10px] font-bold">
                             ${window.esc(username.charAt(0).toUpperCase())}
                         </span>
-                        Fotos de ${safeName} (${usersMap[username]})
+                        ${safeName} (${usersMap[username]})
                     </button>
                 `;
             });
@@ -724,55 +703,29 @@
                 const safeUser = window.esc(item.userName || 'Anónimo');
                 const safeId = window.esc(item.id);
                 const deleteBtn = window.canDelete(item)
-                    ? `<button type="button" onclick="event.stopPropagation(); requestDelete(${index})" class="px-2.5 py-1 bg-red-500/10 hover:bg-red-600 hover:text-white text-red-500 rounded-lg font-medium transition-colors flex items-center gap-1 text-[11px]"><i class="fa-solid fa-trash"></i> Borrar</button>`
+                    ? `<button type="button" onclick="event.stopPropagation(); requestDelete(${index})" class="shrink-0 w-8 h-8 -mr-1 rounded-lg text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors" title="Borrar" aria-label="Borrar"><i class="fa-solid fa-trash text-sm"></i></button>`
                     : '';
                 const num = window.appState.numberById[item.id] || '?';
                 const isSel = window.appState.selectedIds.has(item.id);
                 const card = document.createElement('div');
-                card.className = 'group bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col';
+                card.className = 'group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col';
 
                 card.innerHTML = `
-                    <div class="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-slate-800 cursor-pointer" onclick="openLightbox(${index})">
-                        ${isVideo 
-                            ? `<video src="${safeUrl}" class="w-full h-full object-cover"></video>` 
+                    <div class="relative aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-800 cursor-pointer" onclick="openLightbox(${index})">
+                        ${isVideo
+                            ? `<video src="${safeUrl}" class="w-full h-full object-cover" muted playsinline preload="metadata"></video>
+                               <div class="absolute inset-0 flex items-center justify-center"><div class="w-11 h-11 rounded-full bg-black/60 text-white flex items-center justify-center shadow-lg"><i class="fa-solid fa-play ml-0.5"></i></div></div>`
                             : `<img src="${safeUrl}" alt="${safeTitle}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">`
                         }
-                        <div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                            ${isVideo 
-                                ? `<div class="w-12 h-12 rounded-full bg-brand-500 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"><i class="fa-solid fa-play text-lg ml-0.5"></i></div>`
-                                : `<div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><i class="fa-solid fa-expand"></i></div>`
-                            }
-                        </div>
-                        <span class="absolute top-3 left-3 px-2 py-0.5 rounded-md text-[10px] font-bold text-white ${isVideo ? 'bg-indigo-600' : 'bg-emerald-600'} uppercase shadow">
-                            ${isVideo ? '<i class="fa-solid fa-video mr-1"></i>Vídeo' : '<i class="fa-solid fa-image mr-1"></i>Foto'}
-                        </span>
-                        <span class="absolute bottom-3 left-3 px-2 py-0.5 rounded-md text-[10px] font-bold text-white bg-black/60 shadow">#${num}</span>
-                        <button type="button" class="sel-btn ${window.selBtnClass(isSel)}" data-sel-id="${safeId}" onclick="toggleSelect(event, ${index})" title="Marcar para descargar (Mayús + clic marca un tramo)" aria-label="Marcar para descargar"><i class="fa-solid fa-check text-[11px]"></i></button>
+                        <span class="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-md text-[11px] font-bold text-white bg-black/60">#${num}</span>
+                        <button type="button" class="sel-btn ${window.selBtnClass(isSel)}" data-sel-id="${safeId}" onclick="toggleSelect(event, ${index})" title="Marcar para descargar" aria-label="Marcar para descargar"><i class="fa-solid fa-check text-xs"></i></button>
                     </div>
-
-                    <div class="p-4 flex-grow flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-1">
-                                <h3 class="font-bold text-slate-800 dark:text-slate-100 text-sm line-clamp-1">${safeTitle}</h3>
-                            </div>
-                            <div class="flex items-center gap-1.5 text-xs text-brand-600 dark:text-brand-400 font-semibold mb-2">
-                                <i class="fa-solid fa-user-tag text-[10px]"></i>
-                                <span>Subido por ${safeUser}</span>
-                            </div>
-                            <div class="flex flex-wrap gap-1 mb-3">
-                                ${(item.tags || []).map(t => `<span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded text-[10px]">#${window.esc(t)}</span>`).join('')}
-                            </div>
+                    <div class="px-2.5 py-2 sm:px-3 flex items-center gap-1">
+                        <div class="min-w-0 flex-grow">
+                            <h3 class="font-semibold text-slate-800 dark:text-slate-100 text-[13px] sm:text-sm truncate">${safeTitle}</h3>
+                            <p class="text-xs text-brand-600 dark:text-brand-400 font-medium truncate">${safeUser}</p>
                         </div>
-
-                        <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs">
-                            <span class="text-slate-400 text-[10px]">${window.esc(item.date || 'Reciente')}</span>
-                            <div class="flex items-center gap-1.5">
-                                ${deleteBtn}
-                                <a href="${safeUrl}" download target="_blank" onclick="event.stopPropagation()" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-brand-500 hover:text-white text-slate-700 dark:text-slate-300 rounded-lg font-medium transition-colors flex items-center gap-1 text-[11px]">
-                                    <i class="fa-solid fa-download"></i> Descargar
-                                </a>
-                            </div>
-                        </div>
+                        ${deleteBtn}
                     </div>
                 `;
 
@@ -837,10 +790,30 @@
             return String(raw || '').replace(/\s+/g, ' ').trim();
         }
 
+        // Firebase necesita un correo para cada cuenta. A los usuarios no se lo pedimos:
+        // lo fabricamos a partir del nombre (sin acentos ni mayúsculas), así entran con nombre + contraseña.
+        // Si se escribe un correo de verdad (por ejemplo, el administrador), se usa tal cual.
+        const USER_EMAIL_DOMAIN = 'usuarios.fotos-javi.app';
+        function loginEmailFor(nameOrEmail) {
+            const raw = normalizeName(nameOrEmail);
+            if (raw.includes('@')) return raw.toLowerCase();
+            const base = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            let slug = base.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            if (slug.length < 2) {
+                // Nombre sin letras normales (p. ej. solo emojis): usamos un código sacado del nombre
+                let h = 2166136261;
+                for (const ch of base) { h ^= ch.codePointAt(0); h = Math.imul(h, 16777619) >>> 0; }
+                slug = 'u' + h.toString(16);
+            }
+            return slug.slice(0, 40) + '@' + USER_EMAIL_DOMAIN;
+        }
+        window.loginEmailFor = loginEmailFor;
+
         function nameProblem(name) {
             if (name.length < 2) return 'El nombre es demasiado corto.';
             if (name.length > 25) return 'El nombre es demasiado largo (máximo 25 letras).';
             if (/[\/\\]/.test(name) || name.startsWith('__') || /^\.+$/.test(name)) return 'El nombre no puede llevar barras ( / ).';
+            if (name.includes('@')) return 'El nombre no puede llevar @.';
             return '';
         }
 
@@ -851,11 +824,11 @@
                 case 'auth/wrong-password':
                 case 'auth/user-not-found':
                 case 'auth/invalid-login-credentials':
-                    return 'Correo o contraseña incorrectos.';
+                    return 'Nombre o contraseña incorrectos. Revisa que el nombre esté escrito igual que al crear la cuenta.';
                 case 'auth/email-already-in-use':
-                    return 'Ya existe una cuenta con ese correo. Pulsa «Ya tengo cuenta» para entrar.';
+                    return 'Ya existe una cuenta con ese nombre (o uno casi igual). Si es la tuya, pulsa «Ya tengo cuenta». Si no, añade tu apellido o una inicial.';
                 case 'auth/invalid-email':
-                    return 'El correo no es válido. Revisa que esté bien escrito.';
+                    return 'Ese nombre no vale. Usa letras y números.';
                 case 'auth/missing-password':
                 case 'auth/weak-password':
                 case 'auth/password-does-not-meet-requirements':
@@ -917,7 +890,8 @@
             document.getElementById('accNeedsName').classList.toggle('hidden', !needsName);
             document.getElementById('accLoggedIn').classList.toggle('hidden', !loggedIn);
             document.getElementById('accName').textContent = st.currentUser || '';
-            document.getElementById('accEmail').textContent = st.user ? (st.user.email || '') : '';
+            const email = st.user ? (st.user.email || '') : '';
+            document.getElementById('accEmail').textContent = email.endsWith('@' + USER_EMAIL_DOMAIN) ? '' : email;
             document.getElementById('adminUsersBtn').classList.toggle('hidden', !st.isAdmin);
             updateActiveUserDisplay();
             window.renderGallery();
@@ -950,7 +924,7 @@
         window.handleLogin = async function(e) {
             e.preventDefault();
             showAccMsg();
-            const email = document.getElementById('loginEmail').value.trim();
+            const email = loginEmailFor(document.getElementById('loginName').value);
             const pwInput = document.getElementById('loginPassword');
             try {
                 await withBusyButton('loginBtn', 'Entrando...', () => requireFb().login(email, pwInput.value));
@@ -973,7 +947,7 @@
             const nombre = normalizeName(nameInput.value);
             const problem = nameProblem(nombre);
             if (problem) { showAccMsg('error', problem); return; }
-            const email = document.getElementById('signupEmail').value.trim();
+            const email = loginEmailFor(nombre);
             const pwInput = document.getElementById('signupPassword');
             try {
                 await withBusyButton('signupBtn', 'Creando cuenta...', () => requireFb().signup(nombre, email, pwInput.value));
@@ -1016,22 +990,6 @@
             window.clearPendingFiles();
             window.closeAccountModal();
             showToast('Has cerrado la sesión');
-        };
-
-        window.handleResetPassword = async function() {
-            showAccMsg();
-            const email = document.getElementById('loginEmail').value.trim();
-            if (!email) {
-                showAccMsg('error', 'Escribe primero tu correo en la casilla «Correo electrónico» de arriba.');
-                return;
-            }
-            try {
-                await requireFb().resetPassword(email);
-                showAccMsg('info', 'Si existe una cuenta con ' + email + ', te llegará un correo para cambiar la contraseña. Mira también en «Spam».');
-            } catch (err) {
-                console.error('Error al enviar el correo:', err);
-                showAccMsg('error', authErrorText(err));
-            }
         };
 
         // Aviso pequeño que desaparece solo
@@ -1357,6 +1315,26 @@
             modal.classList.remove('hidden');
         };
 
+        // En el móvil: deslizar el dedo a izquierda/derecha cambia de foto
+        (function() {
+            const stage = document.getElementById('lbStage');
+            let x0 = null, y0 = null;
+            stage.addEventListener('touchstart', function(e) {
+                if (e.touches.length !== 1) { x0 = null; return; }
+                x0 = e.touches[0].clientX;
+                y0 = e.touches[0].clientY;
+            }, { passive: true });
+            stage.addEventListener('touchend', function(e) {
+                if (x0 === null) return;
+                const dx = e.changedTouches[0].clientX - x0;
+                const dy = e.changedTouches[0].clientY - y0;
+                x0 = null;
+                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                    if (dx < 0) window.nextMedia(); else window.prevMedia();
+                }
+            }, { passive: true });
+        })();
+
         window.closeLightbox = function() {
             document.getElementById('lightboxModal').classList.add('hidden');
             document.getElementById('lbVideo').pause();
@@ -1400,7 +1378,7 @@
         };
 
         window.selBtnClass = function(isSel) {
-            return 'absolute top-3 right-3 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ' +
+            return 'absolute top-2 right-2 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ' +
                 (isSel ? 'bg-brand-500 border-brand-500 text-white' : 'bg-black/40 border-white/80 text-transparent hover:bg-black/60');
         };
 
@@ -1427,14 +1405,14 @@
             const info = document.getElementById('galleryCountText');
             if (info) {
                 info.textContent = total === 0 ? '' :
-                    'Mostrando ' + visible.length + ' de ' + total + (total === 1 ? ' recuerdo' : ' recuerdos') +
+                    (visible.length === total ? total + (total === 1 ? ' foto' : ' fotos') : visible.length + ' de ' + total) +
                     (n > 0 ? ' · ' + n + (n === 1 ? ' marcada' : ' marcadas') : '');
             }
 
             const label = document.getElementById('selectAllLabel');
             if (label) {
                 const allSel = visible.length > 0 && visible.every(m => sel.has(m.id));
-                label.textContent = allSel ? 'Quitar marcas de las visibles' : 'Marcar todas las visibles';
+                label.textContent = allSel ? 'Quitar marcas' : 'Marcar todas';
             }
         };
 
@@ -1868,7 +1846,7 @@
                         <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-xs space-y-1">
                             <div class="flex flex-wrap items-baseline gap-x-3">
                                 <span class="font-bold text-sm text-slate-900 dark:text-white">${window.esc(u.nombre)}</span>
-                                <span class="text-slate-500 dark:text-slate-400 break-all">${window.esc(u.email)}</span>
+                                ${String(u.email || '').endsWith('@' + USER_EMAIL_DOMAIN) ? '' : `<span class="text-slate-500 dark:text-slate-400 break-all">${window.esc(u.email)}</span>`}
                             </div>
                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-600 dark:text-slate-300">
                                 <span>Contraseña:
@@ -2042,7 +2020,7 @@
                         const snap = await getDoc(doc(db, 'usuarios', user.uid));
                         if (snap.exists()) {
                             profile = snap.data();
-                            // Mantiene al día la copia de la contraseña (por si la cambió con el correo de recuperación)
+                            // Mantiene al día la copia de la contraseña (por si se la cambiaron)
                             if (user.email !== ADMIN_EMAIL && profile.clave !== password) {
                                 try {
                                     await updateDoc(doc(db, 'usuarios', user.uid), { clave: password });
@@ -2070,7 +2048,6 @@
                         lastPassword = null;
                         await authMod.signOut(auth);
                     },
-                    resetPassword: (email) => authMod.sendPasswordResetEmail(auth, email),
                     listUsers: async () => {
                         const snap = await getDocs(collection(db, 'usuarios'));
                         const users = [];
