@@ -976,7 +976,9 @@
             const email = loginEmailFor(nombre);
             const pwInput = document.getElementById('signupPassword');
             try {
-                await withBusyButton('signupBtn', 'Creando cuenta...', () => requireFb().signup(nombre, email, pwInput.value));
+                const btn = document.getElementById('signupBtn');
+                await withBusyButton('signupBtn', 'Un momento…', () => requireFb().signup(nombre, email, pwInput.value,
+                    text => { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> ' + text; }));
                 nameInput.value = '';
                 pwInput.value = '';
                 showAccMsg('info', '¡Cuenta creada! Ya puedes subir tus fotos.');
@@ -2305,8 +2307,7 @@
                     let profile = knownProfile;
                     if (user && profile === undefined) {
                         try {
-                            const snap = await getDoc(doc(db, 'usuarios', user.uid));
-                            profile = snap.exists() ? snap.data() : null;
+                            profile = await restGet('usuarios/' + user.uid, user);
                         } catch (e) {
                             console.error('No se pudo leer el perfil:', e);
                             profile = null;
@@ -2325,9 +2326,64 @@
                     return { code: 'app/name-taken', message: 'Ya hay alguien con el nombre «' + nombre + '». Añade tu apellido o una inicial para diferenciarte.' };
                 }
 
+                // ---- Peticiones directas a Firestore (REST) ----
+                // Son mucho más rápidas para una consulta suelta que la conexión «en vivo» del SDK,
+                // que en algunos móviles tarda 10-20 s en abrirse (parecía que la web se colgaba).
+                const REST_BASE = 'https://firestore.googleapis.com/v1/projects/' + firebaseConfig.projectId + '/databases/(default)/documents';
+                const DOC_PREFIX = 'projects/' + firebaseConfig.projectId + '/databases/(default)/documents/';
+
+                async function restFetch(url, options) {
+                    const ctrl = new AbortController();
+                    const timer = setTimeout(() => ctrl.abort(), 25000);
+                    try {
+                        return await fetch(url, { ...options, signal: ctrl.signal });
+                    } catch (e) {
+                        throw { code: 'auth/network-request-failed', message: 'Sin conexión o conexión muy lenta. Comprueba tu internet e inténtalo de nuevo.' };
+                    } finally {
+                        clearTimeout(timer);
+                    }
+                }
+
+                function fromRest(fields) {
+                    const out = {};
+                    Object.keys(fields || {}).forEach(k => {
+                        const v = fields[k];
+                        if ('stringValue' in v) out[k] = v.stringValue;
+                        else if ('integerValue' in v) out[k] = Number(v.integerValue);
+                        else if ('doubleValue' in v) out[k] = v.doubleValue;
+                        else if ('booleanValue' in v) out[k] = v.booleanValue;
+                        else out[k] = null;
+                    });
+                    return out;
+                }
+
+                function toRest(obj) {
+                    const out = {};
+                    Object.keys(obj).forEach(k => {
+                        const v = obj[k];
+                        out[k] = typeof v === 'number' ? { integerValue: String(Math.round(v)) } : { stringValue: String(v) };
+                    });
+                    return out;
+                }
+
+                function docPath(path) {
+                    return path.split('/').map(encodeURIComponent).join('/');
+                }
+
+                // Lee un documento. Devuelve sus datos o null si no existe.
+                async function restGet(path, user) {
+                    const headers = {};
+                    if (user) headers.Authorization = 'Bearer ' + await user.getIdToken();
+                    const res = await restFetch(REST_BASE + '/' + docPath(path) + '?key=' + firebaseConfig.apiKey, { headers });
+                    if (res.status === 404) return null;
+                    if (res.status === 403) throw { code: 'permission-denied', message: 'permission-denied' };
+                    if (!res.ok) throw new Error('Error de Firebase (' + res.status + ')');
+                    return fromRest((await res.json()).fields);
+                }
+
                 async function ensureNameFree(nombre, uid) {
-                    const snap = await getDoc(doc(db, 'nombres', nombre.toLowerCase()));
-                    if (snap.exists() && snap.data().uid !== uid) throw nameTaken(nombre);
+                    const taken = await restGet('nombres/' + nombre.toLowerCase(), null);
+                    if (taken && taken.uid !== uid) throw nameTaken(nombre);
                 }
 
                 // Guarda a la vez el nombre reservado («nombres») y la ficha del usuario («usuarios»)
@@ -2340,18 +2396,21 @@
                         clave: user.email === ADMIN_EMAIL ? '' : (lastPassword || ''),
                         creado: Date.now()
                     };
-                    const batch = writeBatch(db);
-                    batch.set(doc(db, 'nombres', clave), { uid: user.uid });
-                    batch.set(doc(db, 'usuarios', user.uid), data);
-                    try {
-                        await batch.commit();
-                    } catch (e) {
-                        if (e.code === 'permission-denied') {
-                            // ¿Otra persona ha cogido ese nombre justo ahora?
-                            const snap = await getDoc(doc(db, 'nombres', clave)).catch(() => null);
-                            if (snap && snap.exists() && snap.data().uid !== user.uid) throw nameTaken(nombre);
-                        }
-                        throw e;
+                    const token = await user.getIdToken();
+                    const res = await restFetch(REST_BASE + ':commit?key=' + firebaseConfig.apiKey, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+                        body: JSON.stringify({ writes: [
+                            { update: { name: DOC_PREFIX + 'nombres/' + clave, fields: toRest({ uid: user.uid }) }, currentDocument: { exists: false } },
+                            { update: { name: DOC_PREFIX + 'usuarios/' + user.uid, fields: toRest(data) } }
+                        ] })
+                    });
+                    if (!res.ok) {
+                        // ¿Otra persona ha cogido ese nombre justo ahora?
+                        const taken = await restGet('nombres/' + clave, null).catch(() => null);
+                        if (taken && taken.uid !== user.uid) throw nameTaken(nombre);
+                        if (res.status === 403) throw { code: 'permission-denied', message: 'permission-denied' };
+                        throw new Error('No se pudo guardar el perfil (error ' + res.status + ').');
                     }
                     await refresh(user, data);
                 }
@@ -2361,27 +2420,46 @@
                         const cred = await authMod.signInWithEmailAndPassword(auth, email, password);
                         const user = cred.user;
                         lastPassword = password;
-                        let profile = null;
-                        const snap = await getDoc(doc(db, 'usuarios', user.uid));
-                        if (snap.exists()) {
-                            profile = snap.data();
-                            // Mantiene al día la copia de la contraseña (por si se la cambiaron)
-                            if (user.email !== ADMIN_EMAIL && profile.clave !== password) {
-                                try {
-                                    await updateDoc(doc(db, 'usuarios', user.uid), { clave: password });
-                                    profile.clave = password;
-                                } catch (e) {
-                                    console.warn('No se pudo actualizar la copia de la contraseña:', e);
-                                }
-                            }
+                        const profile = await restGet('usuarios/' + user.uid, user);
+                        // Mantiene al día la copia de la contraseña (por si se la cambiaron); no hace falta esperar
+                        if (profile && user.email !== ADMIN_EMAIL && profile.clave !== password) {
+                            updateDoc(doc(db, 'usuarios', user.uid), { clave: password })
+                                .catch(e => console.warn('No se pudo actualizar la copia de la contraseña:', e));
+                            profile.clave = password;
                         }
                         await refresh(user, profile);
                     },
-                    signup: async (nombre, email, password) => {
+                    signup: async (nombre, email, password, onStep) => {
+                        const step = t => { if (onStep) onStep(t); };
+                        step('Comprobando el nombre…');
                         await ensureNameFree(nombre, null);
-                        const cred = await authMod.createUserWithEmailAndPassword(auth, email, password);
+                        step('Creando la cuenta…');
+                        let user;
+                        try {
+                            user = (await authMod.createUserWithEmailAndPassword(auth, email, password)).user;
+                        } catch (e) {
+                            // Si un intento anterior se quedó a medias, la cuenta ya existe: si la contraseña
+                            // es la misma, es la suya, así que entramos y terminamos de guardar el perfil.
+                            if (e && e.code === 'auth/email-already-in-use') {
+                                try {
+                                    user = (await authMod.signInWithEmailAndPassword(auth, email, password)).user;
+                                } catch (e2) {
+                                    // Si falla por la conexión, se dice eso (y no «ya existe»)
+                                    if (e2 && e2.code === 'auth/network-request-failed') throw e2;
+                                    throw e;
+                                }
+                            } else {
+                                throw e;
+                            }
+                        }
                         lastPassword = password;
-                        await saveProfile(cred.user, nombre);
+                        step('Guardando tus datos…');
+                        const existing = await restGet('usuarios/' + user.uid, user).catch(() => null);
+                        if (existing) {
+                            await refresh(user, existing);
+                            return;
+                        }
+                        await saveProfile(user, nombre);
                     },
                     completeProfile: async (nombre) => {
                         const user = auth.currentUser;
