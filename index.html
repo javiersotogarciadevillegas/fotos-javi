@@ -329,7 +329,7 @@
                             <input type="file" id="mediaFileInput" accept="image/*,video/*" multiple class="hidden" onchange="handleFileSelected(this)">
                         </label>
                         <div id="filePreviewGrid" class="grid grid-cols-4 sm:grid-cols-5 gap-2 mt-3"></div>
-                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2"><i class="fa-solid fa-video mr-1"></i><strong>Vídeos:</strong> hasta 2 minutos cada uno. Se reducen solos (con menos calidad) y <strong>tardan en prepararse lo mismo que duran</strong>.</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2"><i class="fa-solid fa-video mr-1"></i><strong>Vídeos:</strong> hasta <strong>4 minutos</strong> cada uno. Se reducen solos (con menos calidad) y <strong>tardan en prepararse lo mismo que duran</strong>. Si es más largo, recórtalo antes (mira «¿Cómo funciona?»).</p>
                     </div>
 
                     <div id="urlInputContainer" class="hidden">
@@ -465,6 +465,22 @@
                     </div>
                 </div>
 
+                <div class="p-4 rounded-2xl border border-purple-200 dark:border-purple-500/30 bg-purple-50 dark:bg-purple-500/10">
+                    <p class="font-bold text-purple-900 dark:text-purple-200 mb-2"><i class="fa-solid fa-video mr-1"></i> Vídeos</p>
+                    <ul class="list-disc ml-5 space-y-1 text-[13px]">
+                        <li>Cada vídeo puede durar como <strong>máximo 4 minutos</strong>. Al elegirlo verás su duración en la miniatura.</li>
+                        <li>Antes de subirse, el vídeo <strong>se reduce solo</strong> en tu móvil, y eso <strong>tarda lo mismo que dura</strong>: un vídeo de 3 minutos tarda unos 3 minutos.</li>
+                        <li>Mientras tanto: <strong>no cierres la página, no cambies de aplicación y no dejes que se apague la pantalla</strong>. Lo mejor es dejar el móvil quieto encima de la mesa.</li>
+                        <li>Quedará con menos calidad para que quepa: <strong>guarda el original</strong> en tu móvil.</li>
+                    </ul>
+                    <p class="font-semibold text-purple-900 dark:text-purple-200 mt-3 mb-1 text-[13px]">¿Tu vídeo dura más de 4 minutos? Recórtalo antes:</p>
+                    <ul class="list-disc ml-5 space-y-1 text-[13px]">
+                        <li><i class="fa-brands fa-apple mr-1"></i><strong>iPhone:</strong> abre el vídeo en <strong>Fotos</strong> → <strong>Editar</strong> → arrastra los bordes amarillos de la barra de abajo → <strong>OK</strong> → <strong>«Guardar como clip nuevo»</strong>.</li>
+                        <li><i class="fa-brands fa-android mr-1"></i><strong>Android:</strong> abre el vídeo en <strong>Galería</strong> o <strong>Google Fotos</strong> → <strong>Editar</strong> (el lápiz) → arrastra los bordes de la barra de abajo → <strong>«Guardar copia»</strong>.</li>
+                        <li>Si es muy largo, puedes recortarlo en <strong>dos trozos</strong> y subir los dos.</li>
+                    </ul>
+                </div>
+
                 <div class="p-4 rounded-2xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 text-amber-900 dark:text-amber-200">
                     <p class="font-bold mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Muy importante</p>
                     <ul class="list-disc ml-5 space-y-1 text-[13px]">
@@ -486,7 +502,6 @@
                         <li><strong>Ver una foto en grande:</strong> tócala. Con las flechas pasas a la siguiente.</li>
                         <li><strong>Descargar:</strong> marca las fotos con el círculo de la esquina y pulsa «Descargar».</li>
                         <li><strong>Borrar una foto tuya</strong> que hayas subido por error: pulsa «Borrar» debajo de ella (solo aparece en tus fotos).</li>
-                        <li><strong>Vídeos:</strong> hasta 2 minutos cada uno. Se reducen solos y <strong>tardan en prepararse lo mismo que duran</strong>: mientras tanto no cierres la página ni dejes que se apague la pantalla.</li>
                         <li>Las fotos y los vídeos se guardan algo reducidos para que quepan, así que <strong>guarda siempre el original</strong> en tu móvil.</li>
                     </ul>
                 </div>
@@ -1108,10 +1123,10 @@
         // ---------- Vídeos: se reducen en el propio móvil antes de subirlos ----------
         // El vídeo se reproduce (sin que se oiga) y se vuelve a grabar más pequeño con MediaRecorder.
         // Por eso tarda lo mismo que dura el vídeo.
-        const VIDEO_MAX_SECONDS = 120;            // duración máxima por vídeo
+        const VIDEO_MAX_SECONDS = 240;            // duración máxima por vídeo (4 minutos)
         const VIDEO_MAX_DIM = 640;                // lado largo del vídeo reducido (píxeles)
         const VIDEO_BITRATE = 450000;             // calidad del vídeo reducido (bits por segundo)
-        const VIDEO_MAX_RESULT_BYTES = 12 * 1024 * 1024;
+        const VIDEO_MAX_RESULT_BYTES = 25 * 1024 * 1024;
 
         function fmtTime(sec) {
             sec = Math.max(0, Math.round(sec || 0));
@@ -1354,7 +1369,7 @@
                 const info = await probeVideo(p.file);
                 p.duration = info.duration;
                 if (!isFinite(info.duration) || info.duration <= 0) problem = 'no se puede saber cuánto dura';
-                else if (info.duration > VIDEO_MAX_SECONDS + 0.5) problem = 'dura ' + fmtTime(info.duration) + ' y el máximo es ' + fmtTime(VIDEO_MAX_SECONDS) + '. Recórtalo en el móvil (Editar → recortar) y vuelve a elegirlo';
+                else if (info.duration > VIDEO_MAX_SECONDS + 0.5) problem = 'dura ' + fmtTime(info.duration) + ' y el máximo es ' + fmtTime(VIDEO_MAX_SECONDS) + '. Recórtalo en el móvil y vuelve a elegirlo (cómo hacerlo: botón «?» de arriba → Vídeos)';
             } catch (e) {
                 problem = e.message || 'no se puede leer';
             }
