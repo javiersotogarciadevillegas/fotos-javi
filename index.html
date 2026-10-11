@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Boda de Gloria y Joan · 3/10/2026</title>
+    <meta name="description" content="Álbum de la boda de Gloria y Joan (3 de octubre de 2026). Entra, crea tu cuenta y sube tus fotos y vídeos.">
+    <meta property="og:title" content="Boda de Gloria y Joan 💍">
+    <meta property="og:description" content="3 de octubre de 2026 · Entra y sube tus fotos y vídeos de la boda.">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8D%3C/text%3E%3C/svg%3E">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -27,13 +32,14 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@1,600;1,700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
         html, body { overflow-x: hidden; }
         @media (max-width: 640px) {
             input, select, textarea { font-size: 16px !important; }
         }
+        .font-boda { font-family: 'Playfair Display', Georgia, serif; }
         .scrollbar-none { scrollbar-width: none; }
         .scrollbar-none::-webkit-scrollbar { display: none; }
         .glass {
@@ -58,7 +64,7 @@
     <header class="sticky top-0 z-40 glass border-b border-slate-200 dark:border-slate-800 transition-colors">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
             <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div class="p-2 sm:p-2.5 bg-gradient-to-tr from-brand-600 to-indigo-600 text-white rounded-xl shadow-md shrink-0">
+                <div class="p-2 sm:p-2.5 bg-gradient-to-tr from-rose-500 to-amber-500 text-white rounded-xl shadow-md shrink-0">
                     <i class="fa-solid fa-heart text-base sm:text-xl"></i>
                 </div>
                 <div class="hidden sm:block">
@@ -97,25 +103,45 @@
     <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 flex-grow w-full">
         
         <!-- Hero Section (el título siempre; la explicación y los botones solo si no has entrado) -->
-        <div id="heroSection" class="mb-4 sm:mb-8 text-center sm:text-left flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 bg-gradient-to-r from-brand-500/10 via-indigo-500/5 to-transparent p-4 sm:p-6 rounded-3xl border border-brand-500/10">
-            <div>
-                <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 bg-clip-text text-transparent">
-                    Boda de Gloria y Joan
-                </h2>
-                <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1">
-                    <i class="fa-solid fa-heart text-rose-500 mr-1"></i> 3 de octubre de 2026
-                </p>
-                <p id="heroIntro" class="text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-xl">
+        <div id="heroSection" class="relative overflow-hidden mb-4 sm:mb-8 text-center sm:text-left flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 bg-gradient-to-br from-rose-500/15 via-amber-500/5 to-transparent p-4 sm:p-6 rounded-3xl border border-rose-400/20">
+            <!-- Adornos de fondo -->
+            <i class="fa-solid fa-heart absolute -top-4 -right-3 text-7xl text-rose-500/10 rotate-12 pointer-events-none"></i>
+            <i class="fa-solid fa-ring absolute -bottom-6 -left-3 text-6xl text-amber-500/10 -rotate-12 pointer-events-none"></i>
+
+            <div class="relative">
+                <div class="flex items-center justify-center sm:justify-start gap-3 sm:gap-5">
+                    <div>
+                        <h2 class="font-boda italic font-bold leading-tight bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 bg-clip-text text-transparent">
+                            <span class="block text-lg sm:text-2xl">Boda de</span>
+                            <span class="block text-3xl sm:text-5xl whitespace-nowrap">Gloria y Joan</span>
+                        </h2>
+                        <div class="flex items-center justify-center sm:justify-start gap-2 mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+                            <span class="h-px w-6 bg-gradient-to-r from-transparent to-rose-400"></span>
+                            <i class="fa-solid fa-ring text-amber-500"></i>
+                            <span>3 de octubre de 2026</span>
+                            <i class="fa-solid fa-heart text-rose-500"></i>
+                            <span class="h-px w-6 bg-gradient-to-l from-transparent to-rose-400"></span>
+                        </div>
+                    </div>
+                    <!-- Foto de los novios (la pone el administrador tocando el círculo) -->
+                    <button type="button" id="portadaBtn" onclick="pickPortada()" class="hidden relative shrink-0 w-16 h-16 sm:w-28 sm:h-28 rounded-full ring-4 ring-rose-300/70 dark:ring-rose-500/40 shadow-lg shadow-rose-500/20 overflow-hidden bg-rose-50 dark:bg-slate-800 cursor-default" aria-label="Foto de los novios">
+                        <img id="portadaImg" class="hidden w-full h-full object-cover" alt="Gloria y Joan">
+                        <span id="portadaPlaceholder" class="hidden absolute inset-0 flex-col items-center justify-center text-rose-400 text-[10px] sm:text-xs font-semibold leading-tight"><i class="fa-solid fa-camera text-lg sm:text-2xl mb-0.5"></i>Poner<br>foto</span>
+                        <span id="portadaEdit" class="hidden absolute bottom-0 inset-x-0 bg-black/55 text-white text-[10px] py-0.5"><i class="fa-solid fa-camera"></i></span>
+                    </button>
+                    <input type="file" id="portadaInput" accept="image/*" class="hidden" onchange="handlePortadaSelected(this)">
+                </div>
+                <p id="heroIntro" class="text-sm text-slate-600 dark:text-slate-400 mt-3 max-w-xl">
                     Sube tus recuerdos al grupo. La primera vez crea tu cuenta; después solo tienes que entrar y subir tus fotos.
                 </p>
             </div>
             
-            <div id="heroButtons" class="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
+            <div id="heroButtons" class="relative grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
                 <button onclick="toggleGuideModal()" class="px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm text-sm font-bold flex items-center justify-center gap-2 text-slate-700 dark:text-slate-200">
                     <i class="fa-solid fa-circle-question text-brand-500"></i>
                     <span>Cómo funciona</span>
                 </button>
-                <button onclick="openAccountModal()" class="px-3 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl shadow-sm text-sm font-bold flex items-center justify-center gap-2">
+                <button onclick="openAccountModal()" class="px-3 py-2.5 bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-2xl shadow-sm text-sm font-bold flex items-center justify-center gap-2">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Entrar</span>
                 </button>
@@ -268,6 +294,9 @@
                 <button type="button" id="adminUsersBtn" onclick="openUsersModal()" class="hidden w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl text-xs transition-all">
                     <i class="fa-solid fa-user-shield mr-1"></i> Administrador: ver usuarios y contraseñas
                 </button>
+                <a id="adminGuideBtn" href="https://claude.ai/artifact/Tz9A8tPZF1aVHx6zUQfMsU" target="_blank" rel="noopener" class="hidden w-full py-2.5 bg-amber-100 dark:bg-amber-500/15 hover:bg-amber-200 text-amber-800 dark:text-amber-300 font-semibold rounded-xl text-xs transition-all">
+                    <i class="fa-solid fa-book mr-1"></i> Administrador: guía (GitHub, Firebase, enlaces)
+                </a>
                 <button type="button" onclick="handleLogout()" class="w-full py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl text-xs transition-all">
                     Cerrar sesión
                 </button>
@@ -383,7 +412,7 @@
             </div>
         </div>
 
-        <div id="lbStage" class="relative flex-grow flex items-center justify-center p-2 sm:p-4 overflow-hidden select-none min-h-0">
+        <div id="lbStage" class="relative flex-grow flex items-center justify-center p-2 sm:p-4 overflow-hidden select-none min-h-0 touch-none">
             <button onclick="prevMedia()" class="absolute left-1 sm:left-3 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 hover:bg-black/80 text-white border border-white/10 flex items-center justify-center" aria-label="Anterior">
                 <i class="fa-solid fa-chevron-left sm:text-xl"></i>
             </button>
@@ -392,7 +421,13 @@
             </button>
 
             <div id="lbImageContainer" class="hidden max-w-full max-h-full flex items-center justify-center">
-                <img id="lbImage" src="" class="max-h-[75vh] max-w-full object-contain rounded-xl shadow-2xl">
+                <img id="lbImage" src="" draggable="false" class="max-h-[75vh] max-w-full object-contain rounded-xl shadow-2xl" style="transform-origin: center center; will-change: transform;">
+            </div>
+
+            <!-- Botones de zoom -->
+            <div id="lbZoomBtns" class="absolute bottom-2 right-2 z-10 flex gap-2">
+                <button type="button" onclick="lbZoomStep(-1)" class="w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/10 flex items-center justify-center" aria-label="Alejar"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <button type="button" onclick="lbZoomStep(1)" class="w-10 h-10 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/10 flex items-center justify-center" aria-label="Ampliar"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
             </div>
 
             <div id="lbVideoContainer" class="hidden w-full max-w-4xl max-h-[80vh] flex items-center justify-center">
@@ -402,7 +437,7 @@
 
         <div class="p-3 sm:p-4 bg-gradient-to-t from-black/80 to-transparent text-white text-xs flex justify-between items-center gap-2">
             <span id="lbDate" class="text-slate-400 shrink-0"><i class="fa-regular fa-calendar mr-1"></i> -</span>
-            <span class="sm:hidden text-slate-500 text-[11px]">Desliza ← → para pasar</span>
+            <span class="text-slate-500 text-[11px] text-center"><span class="sm:hidden">Pellizca o toca 2 veces para ampliar · desliza para pasar</span><span class="hidden sm:inline">Rueda del ratón o doble clic para ampliar</span></span>
             <div id="lbTags" class="flex flex-wrap justify-end gap-1"></div>
         </div>
     </div>
@@ -612,6 +647,7 @@
             pendingFiles: [],    // fotos elegidas para subir: { file, isVideo, previewUrl, status }
             uploading: false,
             isAdmin: false,
+            portada: null,       // foto de los novios (data URL)
             selectedIds: new Set(),
             lastSelectedIdx: null,
             numberById: {},
@@ -919,6 +955,10 @@
             const email = st.user ? (st.user.email || '') : '';
             document.getElementById('accEmail').textContent = email.endsWith('@' + USER_EMAIL_DOMAIN) ? '' : email;
             document.getElementById('adminUsersBtn').classList.toggle('hidden', !st.isAdmin);
+            const guide = document.getElementById('adminGuideBtn');
+            guide.classList.toggle('hidden', !st.isAdmin);
+            guide.classList.toggle('block', st.isAdmin);
+            if (window.updatePortadaUI) window.updatePortadaUI();
             updateActiveUserDisplay();
             window.renderGallery();
         };
@@ -1604,6 +1644,8 @@
             window.appState.currentLightboxIdx = index;
             const item = window.appState.filteredMedia[index];
             if (!item) return;
+            if (window.lbResetZoom) window.lbResetZoom();
+            document.getElementById('lbZoomBtns').classList.toggle('hidden', item.type === 'video');
 
             const modal = document.getElementById('lightboxModal');
             document.getElementById('lbTitle').textContent = '#' + (window.appState.numberById[item.id] || '?') + ' · ' + item.title;
@@ -1659,27 +1701,145 @@
             modal.classList.remove('hidden');
         };
 
-        // En el móvil: deslizar el dedo a izquierda/derecha cambia de foto
+        // Visor: ampliar la foto (pellizcar, doble toque, rueda del ratón, botones) y deslizar para pasar
         (function() {
             const stage = document.getElementById('lbStage');
-            let x0 = null, y0 = null;
+            const img = document.getElementById('lbImage');
+            const MAX_ZOOM = 5;
+            let scale = 1, tx = 0, ty = 0;
+            let pinch = null, pan = null, swipe = null, mouse = null;
+            let lastTap = 0;
+
+            const imageShown = () => !document.getElementById('lbImageContainer').classList.contains('hidden');
+
+            function apply(animate) {
+                if (scale <= 1.02) { scale = 1; tx = 0; ty = 0; }
+                const maxX = img.clientWidth * (scale - 1) / 2;
+                const maxY = img.clientHeight * (scale - 1) / 2;
+                tx = Math.max(-maxX, Math.min(maxX, tx));
+                ty = Math.max(-maxY, Math.min(maxY, ty));
+                img.style.transition = animate ? 'transform 0.2s ease' : 'none';
+                img.style.transform = scale === 1 ? '' : 'translate(' + tx + 'px, ' + ty + 'px) scale(' + scale + ')';
+                img.style.cursor = scale > 1 ? 'grab' : 'zoom-in';
+            }
+
+            // Cambia el zoom dejando quieto el punto (px, py) de la pantalla
+            function zoomAt(newScale, px, py, animate) {
+                newScale = Math.max(1, Math.min(MAX_ZOOM, newScale));
+                const r = img.getBoundingClientRect();
+                const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+                const k = newScale / scale;
+                tx += (px - cx) * (1 - k);
+                ty += (py - cy) * (1 - k);
+                scale = newScale;
+                apply(animate);
+            }
+
+            function stageCenter() {
+                const r = img.getBoundingClientRect();
+                return [r.left + r.width / 2, r.top + r.height / 2];
+            }
+
+            window.lbResetZoom = function() { scale = 1; tx = 0; ty = 0; pinch = pan = swipe = mouse = null; apply(false); };
+            window.lbZoomStep = function(dir) {
+                if (!imageShown()) return;
+                const c = stageCenter();
+                zoomAt(dir > 0 ? scale * 1.6 : scale / 1.6, c[0], c[1], true);
+            };
+
+            function toggleZoomAt(x, y) {
+                if (scale > 1) { scale = 1; apply(true); } else zoomAt(2.5, x, y, true);
+            }
+
+            const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+            const mid = t => [(t[0].clientX + t[1].clientX) / 2, (t[0].clientY + t[1].clientY) / 2];
+
             stage.addEventListener('touchstart', function(e) {
-                if (e.touches.length !== 1) { x0 = null; return; }
-                x0 = e.touches[0].clientX;
-                y0 = e.touches[0].clientY;
-            }, { passive: true });
-            stage.addEventListener('touchend', function(e) {
-                if (x0 === null) return;
-                const dx = e.changedTouches[0].clientX - x0;
-                const dy = e.changedTouches[0].clientY - y0;
-                x0 = null;
-                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-                    if (dx < 0) window.nextMedia(); else window.prevMedia();
+                if (e.target.closest('button')) return;
+                if (e.touches.length === 2 && imageShown()) {
+                    pinch = { dist: dist(e.touches), scale: scale };
+                    pan = swipe = null;
+                    e.preventDefault();
+                } else if (e.touches.length === 1) {
+                    const t = e.touches[0];
+                    if (scale > 1) pan = { x: t.clientX, y: t.clientY, tx: tx, ty: ty, moved: false };
+                    else swipe = { x: t.clientX, y: t.clientY };
                 }
-            }, { passive: true });
+            }, { passive: false });
+
+            stage.addEventListener('touchmove', function(e) {
+                if (pinch && e.touches.length === 2) {
+                    e.preventDefault();
+                    const m = mid(e.touches);
+                    zoomAt(pinch.scale * dist(e.touches) / pinch.dist, m[0], m[1], false);
+                } else if (pan && e.touches.length === 1) {
+                    e.preventDefault();
+                    const t = e.touches[0];
+                    if (Math.abs(t.clientX - pan.x) + Math.abs(t.clientY - pan.y) > 8) pan.moved = true;
+                    tx = pan.tx + (t.clientX - pan.x);
+                    ty = pan.ty + (t.clientY - pan.y);
+                    apply(false);
+                }
+            }, { passive: false });
+
+            stage.addEventListener('touchend', function(e) {
+                const t = e.changedTouches[0];
+                if (pinch) {
+                    if (e.touches.length < 2) {
+                        pinch = null;
+                        apply(true);
+                        if (e.touches.length === 1 && scale > 1) {
+                            const r = e.touches[0];
+                            pan = { x: r.clientX, y: r.clientY, tx: tx, ty: ty, moved: true };
+                        }
+                    }
+                    return;
+                }
+                let isTap = false;
+                if (pan) {
+                    isTap = !pan.moved;
+                    pan = null;
+                } else if (swipe) {
+                    const dx = t.clientX - swipe.x, dy = t.clientY - swipe.y;
+                    swipe = null;
+                    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                        if (dx < 0) window.nextMedia(); else window.prevMedia();
+                        return;
+                    }
+                    isTap = Math.abs(dx) < 10 && Math.abs(dy) < 10;
+                }
+                // Doble toque: ampliar / volver al tamaño normal
+                if (isTap && imageShown() && !e.target.closest('button')) {
+                    const now = Date.now();
+                    if (now - lastTap < 320) { lastTap = 0; toggleZoomAt(t.clientX, t.clientY); }
+                    else lastTap = now;
+                }
+            });
+
+            // Ordenador: rueda del ratón, doble clic y arrastrar
+            stage.addEventListener('wheel', function(e) {
+                if (!imageShown()) return;
+                e.preventDefault();
+                zoomAt(scale * (e.deltaY < 0 ? 1.25 : 1 / 1.25), e.clientX, e.clientY, false);
+            }, { passive: false });
+            img.addEventListener('dblclick', function(e) { toggleZoomAt(e.clientX, e.clientY); });
+            img.addEventListener('mousedown', function(e) {
+                if (scale <= 1) return;
+                e.preventDefault();
+                mouse = { x: e.clientX, y: e.clientY, tx: tx, ty: ty };
+                img.style.cursor = 'grabbing';
+            });
+            window.addEventListener('mousemove', function(e) {
+                if (!mouse) return;
+                tx = mouse.tx + (e.clientX - mouse.x);
+                ty = mouse.ty + (e.clientY - mouse.y);
+                apply(false);
+            });
+            window.addEventListener('mouseup', function() { if (mouse) { mouse = null; apply(false); } });
         })();
 
         window.closeLightbox = function() {
+            window.lbResetZoom();
             document.getElementById('lightboxModal').classList.add('hidden');
             document.getElementById('lbVideo').pause();
         };
@@ -2171,6 +2331,67 @@
             }
         };
 
+        // ---------- Foto de los novios (la pone el administrador) ----------
+        window.updatePortadaUI = function() {
+            const st = window.appState;
+            const btn = document.getElementById('portadaBtn');
+            const img = document.getElementById('portadaImg');
+            const has = !!st.portada;
+            if (has && img.getAttribute('src') !== st.portada) img.src = st.portada;
+            img.classList.toggle('hidden', !has);
+            const ph = document.getElementById('portadaPlaceholder');
+            ph.classList.toggle('hidden', has || !st.isAdmin);
+            ph.classList.toggle('flex', !has && st.isAdmin);
+            document.getElementById('portadaEdit').classList.toggle('hidden', !(has && st.isAdmin));
+            btn.classList.toggle('hidden', !has && !st.isAdmin);
+            btn.classList.toggle('cursor-pointer', st.isAdmin);
+            btn.classList.toggle('cursor-default', !st.isAdmin);
+            btn.title = st.isAdmin ? 'Toca para poner o cambiar la foto' : 'Gloria y Joan';
+        };
+
+        window.pickPortada = function() {
+            if (!window.appState.isAdmin) return;
+            document.getElementById('portadaInput').click();
+        };
+
+        // Recorta la foto en cuadrado (centrada) y la reduce para el círculo
+        function squarePhoto(file, size) {
+            return new Promise((resolve, reject) => {
+                const url = URL.createObjectURL(file);
+                const im = new Image();
+                im.onload = () => {
+                    URL.revokeObjectURL(url);
+                    const side = Math.min(im.width, im.height);
+                    const c = document.createElement('canvas');
+                    c.width = c.height = size;
+                    const ctx = c.getContext('2d');
+                    ctx.drawImage(im, (im.width - side) / 2, (im.height - side) / 2, side, side, 0, 0, size, size);
+                    resolve(c.toDataURL('image/jpeg', 0.85));
+                };
+                im.onerror = () => { URL.revokeObjectURL(url); reject(new Error('No se pudo leer la imagen.')); };
+                im.src = url;
+            });
+        }
+
+        window.handlePortadaSelected = async function(input) {
+            const file = input.files && input.files[0];
+            input.value = '';
+            if (!file || !window.appState.isAdmin) return;
+            try {
+                const dataUrl = await squarePhoto(file, 400);
+                showToast('Guardando la foto…');
+                await requireFb().savePortada(dataUrl);
+                window.appState.portada = dataUrl;
+                window.updatePortadaUI();
+                showToast('✅ Foto de los novios puesta');
+            } catch (err) {
+                console.error('Error guardando la foto de portada:', err);
+                alert(err && err.code === 'permission-denied'
+                    ? 'Firebase no deja guardar la foto: faltan las reglas nuevas (la parte «ajustes»).'
+                    : 'No se ha podido guardar la foto: ' + authErrorText(err));
+            }
+        };
+
         // ---------- Lista de usuarios (solo administrador) ----------
         window.openUsersModal = async function() {
             const st = window.appState;
@@ -2246,9 +2467,27 @@
             window.appState.db = getFirestore(app);
             setupRealtimeListener();
             initAuth(app);
+            loadPortada();
         } catch (err) {
             console.error("Error al inicializar Firebase:", err);
             loadFallbackLocalData();
+        }
+
+        // Foto de los novios: se lee con una petición directa (es pública)
+        async function loadPortada() {
+            try {
+                const url = 'https://firestore.googleapis.com/v1/projects/' + firebaseConfig.projectId +
+                    '/databases/(default)/documents/ajustes/portada?key=' + firebaseConfig.apiKey;
+                const res = await fetch(url);
+                if (res.ok) {
+                    const data = await res.json();
+                    const foto = data.fields && data.fields.foto && data.fields.foto.stringValue;
+                    if (foto && foto.startsWith('data:image/')) window.appState.portada = foto;
+                }
+            } catch (e) {
+                console.warn('No se pudo cargar la foto de los novios:', e);
+            }
+            window.updatePortadaUI();
         }
 
         function setupRealtimeListener() {
@@ -2470,6 +2709,17 @@
                     logout: async () => {
                         lastPassword = null;
                         await authMod.signOut(auth);
+                    },
+                    savePortada: async (dataUrl) => {
+                        const user = auth.currentUser;
+                        if (!user) throw { code: 'app/no-auth', message: 'Se ha cerrado la sesión. Vuelve a entrar.' };
+                        const res = await restFetch(REST_BASE + '/ajustes/portada?key=' + firebaseConfig.apiKey, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await user.getIdToken() },
+                            body: JSON.stringify({ fields: toRest({ foto: dataUrl }) })
+                        });
+                        if (res.status === 403) throw { code: 'permission-denied', message: 'permission-denied' };
+                        if (!res.ok) throw new Error('Error de Firebase (' + res.status + ')');
                     },
                     listUsers: async () => {
                         const snap = await getDocs(collection(db, 'usuarios'));
