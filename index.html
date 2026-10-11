@@ -329,7 +329,7 @@
                             <input type="file" id="mediaFileInput" accept="image/*,video/*" multiple class="hidden" onchange="handleFileSelected(this)">
                         </label>
                         <div id="filePreviewGrid" class="grid grid-cols-4 sm:grid-cols-5 gap-2 mt-3"></div>
-                        <p class="text-[10px] text-slate-400 mt-2">Vídeos: solo muy cortos (hasta unos 550 KB). Para vídeos más largos usa «Pegar Enlace URL».</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-2"><i class="fa-solid fa-video mr-1"></i><strong>Vídeos:</strong> hasta 2 minutos cada uno. Se reducen solos (con menos calidad) y <strong>tardan en prepararse lo mismo que duran</strong>.</p>
                     </div>
 
                     <div id="urlInputContainer" class="hidden">
@@ -347,6 +347,7 @@
                     <input type="text" id="mediaTagsInput" placeholder="Ej. Vacaciones, Verano" class="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 </div>
 
+                <div id="uploadVideoSlot" class="hidden flex justify-center"></div>
                 <div id="uploadProgressWrap" class="hidden space-y-1">
                     <div class="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                         <div id="uploadProgressBar" class="h-full bg-brand-500 transition-all" style="width:0%"></div>
@@ -485,7 +486,8 @@
                         <li><strong>Ver una foto en grande:</strong> tócala. Con las flechas pasas a la siguiente.</li>
                         <li><strong>Descargar:</strong> marca las fotos con el círculo de la esquina y pulsa «Descargar».</li>
                         <li><strong>Borrar una foto tuya</strong> que hayas subido por error: pulsa «Borrar» debajo de ella (solo aparece en tus fotos).</li>
-                        <li>Las fotos se guardan algo reducidas para que quepan, así que <strong>guarda siempre el original</strong> en tu móvil.</li>
+                        <li><strong>Vídeos:</strong> hasta 2 minutos cada uno. Se reducen solos y <strong>tardan en prepararse lo mismo que duran</strong>: mientras tanto no cierres la página ni dejes que se apague la pantalla.</li>
+                        <li>Las fotos y los vídeos se guardan algo reducidos para que quepan, así que <strong>guarda siempre el original</strong> en tu móvil.</li>
                     </ul>
                 </div>
 
@@ -717,10 +719,14 @@
 
                 card.innerHTML = `
                     <div class="relative aspect-square w-full overflow-hidden bg-slate-100 dark:bg-slate-800 cursor-pointer" onclick="openLightbox(${index})">
+                        ${isVideo && !item.videoId
+                            ? `<video src="${safeUrl}" class="w-full h-full object-cover" muted playsinline preload="metadata"></video>`
+                            : (safeUrl ? `<img src="${safeUrl}" alt="${safeTitle}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">` : '')
+                        }
                         ${isVideo
-                            ? `<video src="${safeUrl}" class="w-full h-full object-cover" muted playsinline preload="metadata"></video>
-                               <div class="absolute inset-0 flex items-center justify-center"><div class="w-11 h-11 rounded-full bg-black/60 text-white flex items-center justify-center shadow-lg"><i class="fa-solid fa-play ml-0.5"></i></div></div>`
-                            : `<img src="${safeUrl}" alt="${safeTitle}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">`
+                            ? `<div class="absolute inset-0 flex items-center justify-center"><div class="w-11 h-11 rounded-full bg-black/60 text-white flex items-center justify-center shadow-lg"><i class="fa-solid fa-play ml-0.5"></i></div></div>
+                               ${item.duration ? `<span class="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md text-[11px] font-bold text-white bg-black/60">${window.esc(fmtTime(item.duration))}</span>` : ''}`
+                            : ''
                         }
                         <span class="absolute bottom-2 left-2 px-1.5 py-0.5 rounded-md text-[11px] font-bold text-white bg-black/60">#${num}</span>
                         <button type="button" class="sel-btn ${window.selBtnClass(isSel)}" data-sel-id="${safeId}" onclick="toggleSelect(event, ${index})" title="Marcar para descargar" aria-label="Marcar para descargar"><i class="fa-solid fa-check text-xs"></i></button>
@@ -1099,6 +1105,216 @@
             });
         }
 
+        // ---------- Vídeos: se reducen en el propio móvil antes de subirlos ----------
+        // El vídeo se reproduce (sin que se oiga) y se vuelve a grabar más pequeño con MediaRecorder.
+        // Por eso tarda lo mismo que dura el vídeo.
+        const VIDEO_MAX_SECONDS = 120;            // duración máxima por vídeo
+        const VIDEO_MAX_DIM = 640;                // lado largo del vídeo reducido (píxeles)
+        const VIDEO_BITRATE = 450000;             // calidad del vídeo reducido (bits por segundo)
+        const VIDEO_MAX_RESULT_BYTES = 12 * 1024 * 1024;
+
+        function fmtTime(sec) {
+            sec = Math.max(0, Math.round(sec || 0));
+            return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+        }
+
+        function fmtDuration(sec) {
+            sec = Math.max(1, Math.round(sec || 0));
+            const m = Math.floor(sec / 60), s = sec % 60;
+            if (m === 0) return s + ' segundos';
+            return m + (m === 1 ? ' minuto' : ' minutos') + (s ? ' y ' + s + ' segundos' : '');
+        }
+
+        function pickRecorderMime() {
+            if (typeof MediaRecorder === 'undefined' || !HTMLCanvasElement.prototype.captureStream) return '';
+            const options = [
+                'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+                'video/mp4;codecs=avc1,mp4a.40.2',
+                'video/mp4',
+                'video/webm;codecs=vp8,opus',
+                'video/webm;codecs=vp9,opus',
+                'video/webm'
+            ];
+            return options.find(t => { try { return MediaRecorder.isTypeSupported(t); } catch (e) { return false; } }) || '';
+        }
+
+        function waitEvent(el, name, ms) {
+            return new Promise((resolve, reject) => {
+                const t = setTimeout(() => { cleanup(); reject(new Error('El vídeo no responde.')); }, ms || 20000);
+                const ok = () => { cleanup(); resolve(); };
+                const bad = () => { cleanup(); reject(new Error('No se puede leer este vídeo en este navegador.')); };
+                function cleanup() { clearTimeout(t); el.removeEventListener(name, ok); el.removeEventListener('error', bad); }
+                el.addEventListener(name, ok);
+                el.addEventListener('error', bad);
+            });
+        }
+
+        // Lee la duración de un vídeo sin subirlo
+        function probeVideo(file) {
+            return new Promise((resolve, reject) => {
+                const v = document.createElement('video');
+                const url = URL.createObjectURL(file);
+                v.preload = 'metadata';
+                v.muted = true;
+                const done = (fn, arg) => { clearTimeout(t); URL.revokeObjectURL(url); v.removeAttribute('src'); fn(arg); };
+                const t = setTimeout(() => done(reject, new Error('No se puede leer este vídeo en este navegador.')), 15000);
+                v.onloadedmetadata = () => done(resolve, { duration: v.duration });
+                v.onerror = () => done(reject, new Error('No se puede leer este vídeo en este navegador.'));
+                v.src = url;
+            });
+        }
+
+        // Prepara (dentro del toque en «Publicar») el reproductor de cada vídeo y el sonido.
+        // Los navegadores de móvil solo dejan reproducir con sonido si se hace justo al tocar.
+        function prepareVideoPlayers(items) {
+            let audioCtx = null;
+            try {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (AC) { audioCtx = new AC(); audioCtx.resume().catch(() => {}); }
+            } catch (e) { audioCtx = null; }
+            items.forEach(p => {
+                const v = document.createElement('video');
+                v.playsInline = true;
+                v.setAttribute('playsinline', '');
+                v.preload = 'auto';
+                v.src = p.previewUrl;
+                v.className = 'w-28 h-20 object-cover rounded-lg bg-black';
+                p.player = { video: v, audioDest: null };
+                if (audioCtx) {
+                    try {
+                        // El sonido va a la grabación, no a los altavoces
+                        const src = audioCtx.createMediaElementSource(v);
+                        const dest = audioCtx.createMediaStreamDestination();
+                        src.connect(dest);
+                        p.player.audioDest = dest;
+                    } catch (e) { p.player.audioDest = null; }
+                }
+                if (!p.player.audioDest) v.muted = true;
+                const pr = v.play();
+                p.player.ready = (pr && pr.then) ? pr.then(() => v.pause()).catch(() => {}) : Promise.resolve();
+            });
+            return audioCtx;
+        }
+
+        // Reduce un vídeo. Devuelve { blob, mime, poster, duration }
+        async function convertVideo(p, onProgress) {
+            const mime = pickRecorderMime();
+            if (!mime) throw new Error('Este navegador no puede preparar vídeos. Prueba con Chrome o actualiza el móvil.');
+            const v = p.player.video;
+            await p.player.ready;
+            const slot = document.getElementById('uploadVideoSlot');
+            slot.innerHTML = '';
+            slot.appendChild(v);
+            slot.classList.remove('hidden');
+
+            if (v.readyState < 1) await waitEvent(v, 'loadedmetadata');
+            v.pause();
+            if (v.currentTime > 0) { v.currentTime = 0; await waitEvent(v, 'seeked').catch(() => {}); }
+
+            const duration = v.duration;
+            const scale = Math.min(1, VIDEO_MAX_DIM / Math.max(v.videoWidth || 640, v.videoHeight || 360));
+            const cw = Math.max(2, Math.round((v.videoWidth || 640) * scale / 2) * 2);
+            const ch = Math.max(2, Math.round((v.videoHeight || 360) * scale / 2) * 2);
+            const canvas = document.createElement('canvas');
+            canvas.width = cw;
+            canvas.height = ch;
+            const ctx = canvas.getContext('2d');
+            const draw = () => { try { ctx.drawImage(v, 0, 0, cw, ch); } catch (e) { /* aún sin imagen */ } };
+            draw();
+
+            const stream = canvas.captureStream(30);
+            const audioTrack = p.player.audioDest ? p.player.audioDest.stream.getAudioTracks()[0] : null;
+            if (audioTrack) stream.addTrack(audioTrack);
+            const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: VIDEO_BITRATE, audioBitsPerSecond: 64000 });
+            const parts = [];
+            rec.ondataavailable = e => { if (e.data && e.data.size) parts.push(e.data); };
+
+            let poster = null;
+            let failure = null;
+            let finished = false;
+            const onHidden = () => { if (document.hidden) failure = new Error('Has salido de la página mientras se preparaba el vídeo. Vuelve a intentarlo sin cambiar de aplicación ni apagar la pantalla.'); };
+            document.addEventListener('visibilitychange', onHidden);
+
+            let stopAll = () => {};
+            const result = new Promise((resolve, reject) => {
+                stopAll = () => {
+                    if (finished) return;
+                    finished = true;
+                    draw();
+                    rec.onstop = () => resolve();
+                    try { rec.stop(); } catch (e) { resolve(); }
+                };
+                v.onended = stopAll;
+                v.onerror = () => { failure = failure || new Error('No se puede leer este vídeo en este navegador.'); stopAll(); };
+                const watchdog = setInterval(() => {
+                    if (finished) { clearInterval(watchdog); return; }
+                    if (failure) { clearInterval(watchdog); stopAll(); }
+                }, 500);
+                setTimeout(() => {
+                    if (!finished) { failure = failure || new Error('El vídeo tarda demasiado en prepararse.'); stopAll(); }
+                }, (duration * 2 + 30) * 1000);
+            });
+
+            // Copia cada fotograma al lienzo que se está grabando
+            const useVFC = typeof v.requestVideoFrameCallback === 'function';
+            const step = () => {
+                if (finished) return;
+                draw();
+                if (!poster && (v.currentTime >= Math.min(1, duration / 3))) {
+                    try { poster = canvas.toDataURL('image/jpeg', 0.7); } catch (e) { /* sin miniatura */ }
+                }
+                if (onProgress) onProgress(v.currentTime, duration);
+                if (useVFC) v.requestVideoFrameCallback(step); else requestAnimationFrame(step);
+            };
+
+            rec.start(1000);
+            try {
+                await v.play();
+            } catch (e) {
+                // Si no deja reproducir con sonido, se prepara sin sonido
+                v.muted = true;
+                await v.play();
+            }
+            // Solo ahora se vigila si se para (antes podían llegar avisos de pausa atrasados)
+            v.onpause = () => {
+                if (!v.ended && !finished) {
+                    failure = failure || new Error('El vídeo se ha parado mientras se preparaba (¿se apagó la pantalla o cambiaste de app?). Vuelve a intentarlo.');
+                    stopAll();
+                }
+            };
+            if (useVFC) v.requestVideoFrameCallback(step); else requestAnimationFrame(step);
+
+            await result;
+            document.removeEventListener('visibilitychange', onHidden);
+            v.onpause = v.onended = v.onerror = null;
+            v.pause();
+            stream.getTracks().forEach(t => t.stop());
+            if (failure) throw failure;
+            if (!poster) { try { poster = canvas.toDataURL('image/jpeg', 0.7); } catch (e) { poster = ''; } }
+
+            const blob = new Blob(parts, { type: (rec.mimeType || mime).split(';')[0] });
+            if (blob.size === 0) throw new Error('No se ha podido grabar el vídeo reducido.');
+            if (blob.size > VIDEO_MAX_RESULT_BYTES) throw new Error('El vídeo reducido sigue siendo demasiado grande. Prueba con uno más corto.');
+            return { blob, mime: blob.type, poster, duration };
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = () => { const s = String(r.result); resolve(s.slice(s.indexOf(',') + 1)); };
+                r.onerror = () => reject(new Error('No se pudo leer el vídeo reducido.'));
+                r.readAsDataURL(blob);
+            });
+        }
+
+        // Mantener la pantalla encendida mientras se preparan vídeos (si el móvil lo permite)
+        async function keepScreenOn() {
+            try {
+                if (navigator.wakeLock) return await navigator.wakeLock.request('screen');
+            } catch (e) { /* no pasa nada */ }
+            return null;
+        }
+
         // ---------- Elegir varias fotos ----------
         window.handleFileSelected = function(input) {
             const st = window.appState;
@@ -1112,23 +1328,46 @@
                     rejected.push(file.name + ' (no es una foto ni un vídeo)');
                     return;
                 }
-                if (isVideo && file.size > VIDEO_MAX_BYTES) {
-                    rejected.push(file.name + ' (vídeo demasiado grande; usa «Pegar Enlace URL»)');
-                    return;
-                }
                 const repeated = st.pendingFiles.some(p => p.file.name === file.name && p.file.size === file.size && p.file.lastModified === file.lastModified);
                 if (repeated) return;
                 if (st.pendingFiles.length >= MAX_FILES_AT_ONCE) {
                     rejected.push(file.name + ' (máximo ' + MAX_FILES_AT_ONCE + ' de una vez)');
                     return;
                 }
-                st.pendingFiles.push({ file, isVideo, previewUrl: URL.createObjectURL(file), status: '' });
+                const p = { file, isVideo, previewUrl: URL.createObjectURL(file), status: '' };
+                // Los vídeos pequeños se suben tal cual; los demás se reducen al publicar
+                p.needsConvert = isVideo && file.size > VIDEO_MAX_BYTES;
+                st.pendingFiles.push(p);
+                if (isVideo) checkVideoLength(p);
             });
             window.renderPendingFiles();
             if (rejected.length) {
                 alert('Estas no se van a subir:\n\n' + rejected.join('\n'));
             }
         };
+
+        // Mira cuánto dura un vídeo elegido; si pasa del máximo, lo quita de la lista
+        async function checkVideoLength(p) {
+            const st = window.appState;
+            let problem = '';
+            try {
+                const info = await probeVideo(p.file);
+                p.duration = info.duration;
+                if (!isFinite(info.duration) || info.duration <= 0) problem = 'no se puede saber cuánto dura';
+                else if (info.duration > VIDEO_MAX_SECONDS + 0.5) problem = 'dura ' + fmtTime(info.duration) + ' y el máximo es ' + fmtTime(VIDEO_MAX_SECONDS) + '. Recórtalo en el móvil (Editar → recortar) y vuelve a elegirlo';
+            } catch (e) {
+                problem = e.message || 'no se puede leer';
+            }
+            if (problem) {
+                const i = st.pendingFiles.indexOf(p);
+                if (i >= 0 && !st.uploading) {
+                    URL.revokeObjectURL(p.previewUrl);
+                    st.pendingFiles.splice(i, 1);
+                }
+                alert('El vídeo «' + p.file.name + '» no se puede subir: ' + problem + '.');
+            }
+            window.renderPendingFiles();
+        }
 
         window.renderPendingFiles = function() {
             const st = window.appState;
@@ -1145,7 +1384,10 @@
                 else if (p.status === 'busy') overlay = '<div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-xl"><i class="fa-solid fa-spinner fa-spin"></i></div>';
                 const removeBtn = st.uploading ? '' :
                     `<button type="button" onclick="removePendingFile(${i})" class="absolute top-1 right-1 w-7 h-7 rounded-full bg-black/70 text-white text-xs flex items-center justify-center" aria-label="Quitar esta foto"><i class="fa-solid fa-xmark"></i></button>`;
-                return `<div class="relative aspect-square rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800">${media}${overlay}${removeBtn}</div>`;
+                const badge = p.isVideo
+                    ? `<span class="absolute bottom-1 left-1 px-1 rounded bg-black/70 text-white text-[10px] font-bold"><i class="fa-solid fa-video mr-0.5"></i>${p.duration ? fmtTime(p.duration) : '…'}</span>`
+                    : '';
+                return `<div class="relative aspect-square rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800">${media}${badge}${overlay}${removeBtn}</div>`;
             }).join('');
             const n = st.pendingFiles.length;
             label.textContent = n === 0 ? DEFAULT_FILE_LABEL
@@ -1212,6 +1454,8 @@
 
             const submitBtn = document.getElementById('submitUploadBtn');
             const btnHtml = submitBtn.innerHTML;
+            let audioCtx = null;
+            let wakeLock = null;
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Publicando...';
             st.uploading = true;
@@ -1239,6 +1483,36 @@
                     alert('Primero toca el recuadro y elige tus fotos.');
                     return;
                 }
+
+                // Aviso del tiempo que tardarán los vídeos
+                const toConvert = todo.filter(p => p.needsConvert);
+                if (toConvert.some(p => !p.duration)) {
+                    alert('Espera un momento: todavía se está mirando cuánto duran los vídeos.');
+                    return;
+                }
+                if (toConvert.length > 0) {
+                    if (!pickRecorderMime()) {
+                        alert('Este navegador no puede preparar vídeos. Prueba con Chrome o actualiza el móvil. (Las fotos sí puedes subirlas: quita los vídeos con la ✕.)');
+                        return;
+                    }
+                    const secs = toConvert.reduce((a, p) => a + p.duration, 0);
+                    // Se preparan los reproductores aquí, justo al tocar (si no, el móvil no deja grabar el sonido)
+                    audioCtx = prepareVideoPlayers(toConvert);
+                    const msg = '⏱️ AVISO SOBRE LOS VÍDEOS\n\n' +
+                        'Vas a subir ' + (toConvert.length === 1 ? '1 vídeo' : toConvert.length + ' vídeos') + '. ' +
+                        'Antes de subirlos hay que reducirlos, y eso tarda lo mismo que duran: unos ' + fmtDuration(secs * 1.1 + 5 * toConvert.length) + ' en total.\n\n' +
+                        'Mientras tanto:\n' +
+                        '• NO cierres esta página\n' +
+                        '• NO cambies de aplicación\n' +
+                        '• NO dejes que se apague la pantalla\n\n' +
+                        'Los vídeos quedarán con menos calidad para que quepan. Guarda siempre el original en tu móvil.\n\n' +
+                        '¿Empezamos?';
+                    if (!confirm(msg)) {
+                        toConvert.forEach(p => { if (p.player) { p.player.video.removeAttribute('src'); p.player = null; } });
+                        return;
+                    }
+                    wakeLock = await keepScreenOn();
+                }
                 window.renderPendingFiles(); // oculta las ✕ mientras sube
                 let ok = 0;
                 const errors = [];
@@ -1248,9 +1522,26 @@
                     p.status = 'busy';
                     window.renderPendingFiles();
                     try {
-                        const url = p.isVideo ? await readFileAsDataURL(p.file) : await window.compressImage(p.file);
-                        if (url.length > MAX_DATAURL_CHARS) throw new Error('Es demasiado grande.');
-                        await window.saveMediaToFirestore({ title, type: p.isVideo ? 'video' : 'photo', url, date, tags });
+                        if (p.needsConvert) {
+                            const label = 'Vídeo ' + (i + 1) + ' de ' + todo.length;
+                            const conv = await convertVideo(p, (t, d) => setUploadProgress(i + (d ? t / d : 0) * 0.8, todo.length,
+                                label + ': preparando ' + fmtTime(t) + ' de ' + fmtTime(d) + '… No cierres la página ni apagues la pantalla.'));
+                            document.getElementById('uploadVideoSlot').classList.add('hidden');
+                            setUploadProgress(i + 0.8, todo.length, label + ': subiendo…');
+                            const b64 = await blobToBase64(conv.blob);
+                            const saved = await window.saveVideoChunks(b64, (n, total) =>
+                                setUploadProgress(i + 0.8 + 0.2 * n / total, todo.length, label + ': subiendo ' + Math.round(100 * n / total) + '%…'));
+                            try {
+                                await window.saveMediaToFirestore({ title, type: 'video', url: conv.poster, videoId: saved.videoId, chunks: saved.chunks, mime: conv.mime, duration: Math.round(conv.duration), date, tags });
+                            } catch (err) {
+                                await window.deleteVideoChunks(saved.videoId, saved.chunks);
+                                throw err;
+                            }
+                        } else {
+                            const url = p.isVideo ? await readFileAsDataURL(p.file) : await window.compressImage(p.file);
+                            if (url.length > MAX_DATAURL_CHARS) throw new Error('Es demasiado grande.');
+                            await window.saveMediaToFirestore({ title, type: p.isVideo ? 'video' : 'photo', url, date, tags });
+                        }
                         p.status = 'ok';
                         ok++;
                     } catch (err) {
@@ -1284,6 +1575,10 @@
                 st.uploading = false;
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = btnHtml;
+                document.getElementById('uploadVideoSlot').classList.add('hidden');
+                st.pendingFiles.forEach(p => { if (p.player) { p.player.video.pause(); p.player = null; } });
+                if (audioCtx) audioCtx.close().catch(() => {});
+                if (wakeLock) wakeLock.release().catch(() => {});
                 window.renderPendingFiles();
             }
         };
@@ -1305,9 +1600,36 @@
             const img = document.getElementById('lbImage');
             const video = document.getElementById('lbVideo');
 
-            if (item.type === 'video') {
+            const dl = document.getElementById('lbDownloadBtn');
+            dl.setAttribute('download', '');
+            if (item.type === 'video' && item.videoId) {
+                // Vídeo troceado: se descargan los trozos y se junta
                 imgContainer.classList.add('hidden');
                 videoContainer.classList.remove('hidden');
+                video.removeAttribute('src');
+                video.poster = item.url || '';
+                dl.removeAttribute('href');
+                const lbDate = document.getElementById('lbDate');
+                const dateHtml = lbDate.innerHTML;
+                lbDate.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Cargando vídeo…';
+                window.loadVideoBlob(item).then(blob => {
+                    if (window.appState.currentLightboxIdx !== index) return; // ya se ha pasado a otra
+                    if (video.dataset.blobUrl) URL.revokeObjectURL(video.dataset.blobUrl);
+                    const u = URL.createObjectURL(blob);
+                    video.dataset.blobUrl = u;
+                    video.src = u;
+                    dl.href = u;
+                    dl.setAttribute('download', safeFileName(item.title) + '.' + guessExt(item, item.mime));
+                    lbDate.innerHTML = dateHtml;
+                    video.play().catch(() => {});
+                }).catch(err => {
+                    console.error('Error cargando el vídeo:', err);
+                    if (window.appState.currentLightboxIdx === index) lbDate.textContent = 'No se ha podido cargar el vídeo.';
+                });
+            } else if (item.type === 'video') {
+                imgContainer.classList.add('hidden');
+                videoContainer.classList.remove('hidden');
+                video.removeAttribute('poster');
                 video.src = item.url;
                 video.play().catch(() => {});
             } else {
@@ -1600,6 +1922,7 @@
         }
 
         function estimateBytes(item) {
+            if (item.videoId) return Math.round((item.chunks || 1) * 700000 * 0.75);
             const u = String(item.url || '');
             if (u.startsWith('data:')) {
                 const i = u.indexOf(',');
@@ -1737,7 +2060,9 @@
                     const num = entries[i].num;
                     setProgress(i, entries.length, 'Preparando ' + (i + 1) + ' de ' + entries.length + '...');
                     try {
-                        const got = await fetchBytes(item.url);
+                        const got = item.videoId
+                            ? await window.loadVideoBlob(item).then(async b => ({ bytes: new Uint8Array(await b.arrayBuffer()), mime: item.mime || b.type }))
+                            : await fetchBytes(item.url);
                         totalBytes += got.bytes.length;
                         if (totalBytes > MAX_ZIP_BYTES) {
                             const big = new Error('Son demasiados datos para un solo ZIP (más de 800 MB). Descárgalas por tandas usando un rango de números más pequeño.');
@@ -1884,7 +2209,7 @@
     <!-- FIREBASE & APPLICATION SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, deleteDoc, getDoc, getDocs, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, deleteDoc, getDoc, getDocs, setDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBUN1hX24qVam1BYineFpAm8FouG1tYf28",
@@ -2090,9 +2415,80 @@
             if (!window.appState.db) {
                 throw new Error('No hay conexión con Firebase.');
             }
+            const db = window.appState.db;
+            if (item.videoId) {
+                // Vídeo troceado: se borran a la vez la ficha y todos sus trozos
+                const batch = writeBatch(db);
+                batch.delete(doc(db, 'fotos', item.id));
+                for (let i = 0; i < (item.chunks || 0); i++) {
+                    batch.delete(doc(db, 'videoTrozos', item.videoId + '_' + i));
+                }
+                await batch.commit();
+                return 'cloud';
+            }
             // La galería se actualiza sola cuando Firebase confirma el borrado (onSnapshot)
-            await deleteDoc(doc(window.appState.db, 'fotos', item.id));
+            await deleteDoc(doc(db, 'fotos', item.id));
             return 'cloud';
+        };
+
+        // ---------- Vídeos troceados ----------
+        // Un documento de Firestore admite como máximo 1 MiB, así que los vídeos reducidos
+        // se guardan en varios trozos («videoTrozos/<videoId>_<n>») de texto base64.
+        const VIDEO_CHUNK_CHARS = 700000;
+
+        async function deleteVideoChunks(videoId, count) {
+            const db = window.appState.db;
+            for (let i = 0; i < count; i++) {
+                try { await deleteDoc(doc(db, 'videoTrozos', videoId + '_' + i)); } catch (e) { /* se ignora */ }
+            }
+        }
+
+        // Guarda los trozos y devuelve { videoId, chunks }. Si algo falla, borra lo ya subido.
+        window.saveVideoChunks = async function(base64, onProgress) {
+            const st = window.appState;
+            if (!st.db || !st.user) throw new Error('Tienes que entrar con tu cuenta para subir vídeos.');
+            const videoId = st.user.uid.slice(0, 8) + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+            const total = Math.ceil(base64.length / VIDEO_CHUNK_CHARS);
+            let saved = 0;
+            try {
+                for (let i = 0; i < total; i++) {
+                    await setDoc(doc(st.db, 'videoTrozos', videoId + '_' + i), {
+                        videoId: videoId,
+                        idx: i,
+                        uid: st.user.uid,
+                        data: base64.slice(i * VIDEO_CHUNK_CHARS, (i + 1) * VIDEO_CHUNK_CHARS)
+                    });
+                    saved++;
+                    if (onProgress) onProgress(saved, total);
+                }
+            } catch (e) {
+                await deleteVideoChunks(videoId, saved);
+                throw e;
+            }
+            return { videoId: videoId, chunks: total };
+        };
+        window.deleteVideoChunks = deleteVideoChunks;
+
+        // Descarga los trozos de un vídeo y devuelve el archivo completo (Blob). Se guarda en memoria.
+        const videoBlobCache = {};
+        window.loadVideoBlob = function(item) {
+            if (!videoBlobCache[item.videoId]) {
+                videoBlobCache[item.videoId] = (async () => {
+                    const db = window.appState.db;
+                    const parts = await Promise.all(Array.from({ length: item.chunks || 0 }, (_, i) =>
+                        getDoc(doc(db, 'videoTrozos', item.videoId + '_' + i))));
+                    const b64 = parts.map(snap => {
+                        if (!snap.exists()) throw new Error('Falta un trozo del vídeo.');
+                        return snap.data().data;
+                    }).join('');
+                    const bin = atob(b64);
+                    const bytes = new Uint8Array(bin.length);
+                    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                    return new Blob([bytes], { type: item.mime || 'video/mp4' });
+                })();
+                videoBlobCache[item.videoId].catch(() => { delete videoBlobCache[item.videoId]; });
+            }
+            return videoBlobCache[item.videoId];
         };
 
         // Guarda una foto en Firebase con el nombre y el identificador de quien la sube.
