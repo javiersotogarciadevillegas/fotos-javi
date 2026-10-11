@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Álbum Compartido - Fotos de Javi y Amigos</title>
+    <title>Boda de Gloria y Joan · 3/10/2026</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -59,13 +59,13 @@
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
             <div class="flex items-center gap-2 sm:gap-3 min-w-0">
                 <div class="p-2 sm:p-2.5 bg-gradient-to-tr from-brand-600 to-indigo-600 text-white rounded-xl shadow-md shrink-0">
-                    <i class="fa-solid fa-users-rectangle text-base sm:text-xl"></i>
+                    <i class="fa-solid fa-heart text-base sm:text-xl"></i>
                 </div>
                 <div class="hidden sm:block">
                     <h1 class="text-lg font-bold bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        Álbum Compartido
+                        Boda de Gloria y Joan
                     </h1>
-                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Fotos de Javi y amigos</p>
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">3 de octubre de 2026</p>
                 </div>
             </div>
 
@@ -96,18 +96,21 @@
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 flex-grow w-full">
         
-        <!-- Hero Section (solo si no has entrado) -->
+        <!-- Hero Section (el título siempre; la explicación y los botones solo si no has entrado) -->
         <div id="heroSection" class="mb-4 sm:mb-8 text-center sm:text-left flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 bg-gradient-to-r from-brand-500/10 via-indigo-500/5 to-transparent p-4 sm:p-6 rounded-3xl border border-brand-500/10">
             <div>
-                <h2 class="text-xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                    Galería Colaborativa
+                <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-rose-500 via-pink-500 to-amber-500 bg-clip-text text-transparent">
+                    Boda de Gloria y Joan
                 </h2>
-                <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl">
+                <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1">
+                    <i class="fa-solid fa-heart text-rose-500 mr-1"></i> 3 de octubre de 2026
+                </p>
+                <p id="heroIntro" class="text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-xl">
                     Sube tus recuerdos al grupo. La primera vez crea tu cuenta; después solo tienes que entrar y subir tus fotos.
                 </p>
             </div>
             
-            <div class="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
+            <div id="heroButtons" class="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
                 <button onclick="toggleGuideModal()" class="px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm text-sm font-bold flex items-center justify-center gap-2 text-slate-700 dark:text-slate-200">
                     <i class="fa-solid fa-circle-question text-brand-500"></i>
                     <span>Cómo funciona</span>
@@ -186,7 +189,7 @@
     <!-- Footer -->
     <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 mt-auto">
         <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row justify-between items-center gap-3">
-            <p>© Álbum de Fotos Colaborativo - Fotos Javi</p>
+            <p>Boda de Gloria y Joan · 3 de octubre de 2026</p>
             <button onclick="toggleGuideModal()" class="text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 font-medium">
                 <i class="fa-solid fa-circle-question"></i> ¿Cómo funciona?
             </button>
@@ -416,7 +419,7 @@
             </div>
 
             <div class="space-y-4 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                <p>Este álbum es para que <strong>cada persona del grupo suba sus propias fotos</strong> y todos podamos verlas y descargarlas.</p>
+                <p>Este es el álbum de la <strong>boda de Gloria y Joan</strong>. Es para que <strong>cada invitado suba sus propias fotos</strong> y todos podamos verlas y descargarlas.</p>
 
                 <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
                     <p class="font-bold text-slate-900 dark:text-white mb-2"><span class="inline-flex w-6 h-6 rounded-full bg-brand-600 text-white items-center justify-center text-xs mr-1">1</span> Crea tu cuenta (solo la primera vez)</p>
@@ -631,8 +634,10 @@
                 else avatarEl.innerHTML = '<i class="fa-solid fa-user"></i>';
             }
             if (tagEl) tagEl.textContent = name || '';
-            const hero = document.getElementById('heroSection');
-            if (hero) hero.classList.toggle('hidden', !!st.user);
+            ['heroIntro', 'heroButtons'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.toggle('hidden', !!st.user);
+            });
         }
 
         // La primera vez que alguien abre el álbum en un móvil u ordenador, le enseñamos el tutorial
