@@ -294,6 +294,9 @@
                 <button type="button" id="adminUsersBtn" onclick="openUsersModal()" class="hidden w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl text-xs transition-all">
                     <i class="fa-solid fa-user-shield mr-1"></i> Administrador: ver usuarios y contraseñas
                 </button>
+                <button type="button" id="adminOptimizeBtn" onclick="optimizeOldPhotos()" class="hidden w-full py-2.5 bg-emerald-100 dark:bg-emerald-500/15 hover:bg-emerald-200 text-emerald-800 dark:text-emerald-300 font-semibold rounded-xl text-xs transition-all">
+                    <i class="fa-solid fa-gauge-high mr-1"></i> Administrador: optimizar fotos antiguas (<span id="adminOptimizeCount">0</span>)
+                </button>
                 <a id="adminGuideBtn" href="https://claude.ai/artifact/Tz9A8tPZF1aVHx6zUQfMsU" target="_blank" rel="noopener" class="hidden w-full py-2.5 bg-amber-100 dark:bg-amber-500/15 hover:bg-amber-200 text-amber-800 dark:text-amber-300 font-semibold rounded-xl text-xs transition-all">
                     <i class="fa-solid fa-book mr-1"></i> Administrador: guía (GitHub, Firebase, enlaces)
                 </a>
@@ -955,6 +958,7 @@
             const email = st.user ? (st.user.email || '') : '';
             document.getElementById('accEmail').textContent = email.endsWith('@' + USER_EMAIL_DOMAIN) ? '' : email;
             document.getElementById('adminUsersBtn').classList.toggle('hidden', !st.isAdmin);
+            window.updateOptimizeBtn();
             const guide = document.getElementById('adminGuideBtn');
             guide.classList.toggle('hidden', !st.isAdmin);
             guide.classList.toggle('block', st.isAdmin);
@@ -1152,6 +1156,28 @@
                 img.src = objectUrl;
             });
         };
+
+        // Miniatura para la galería (≈ 20-40 KB): lado largo de 400 px
+        const THUMB_DIM = 400;
+        function makeThumbnail(dataUrl) {
+            return new Promise((resolve, reject) => {
+                const im = new Image();
+                im.onload = () => {
+                    const scale = Math.min(1, THUMB_DIM / Math.max(im.width, im.height));
+                    const c = document.createElement('canvas');
+                    c.width = Math.max(1, Math.round(im.width * scale));
+                    c.height = Math.max(1, Math.round(im.height * scale));
+                    const ctx = c.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, c.width, c.height);
+                    ctx.drawImage(im, 0, 0, c.width, c.height);
+                    resolve(c.toDataURL('image/jpeg', 0.72));
+                };
+                im.onerror = () => reject(new Error('No se pudo hacer la miniatura.'));
+                im.src = dataUrl;
+            });
+        }
+        window.makeThumbnail = makeThumbnail;
 
         function readFileAsDataURL(file) {
             return new Promise((resolve, reject) => {
@@ -1594,10 +1620,22 @@
                                 await window.deleteVideoChunks(saved.videoId, saved.chunks);
                                 throw err;
                             }
-                        } else {
-                            const url = p.isVideo ? await readFileAsDataURL(p.file) : await window.compressImage(p.file);
+                        } else if (p.isVideo) {
+                            const url = await readFileAsDataURL(p.file);
                             if (url.length > MAX_DATAURL_CHARS) throw new Error('Es demasiado grande.');
-                            await window.saveMediaToFirestore({ title, type: p.isVideo ? 'video' : 'photo', url, date, tags });
+                            await window.saveMediaToFirestore({ title, type: 'video', url, date, tags });
+                        } else {
+                            // Foto: la grande se guarda aparte y en la galería solo va una miniatura
+                            const full = await window.compressImage(p.file);
+                            if (full.length > MAX_DATAURL_CHARS) throw new Error('Es demasiado grande.');
+                            const thumb = await makeThumbnail(full);
+                            const grandeId = await window.saveFotoGrande(full);
+                            try {
+                                await window.saveMediaToFirestore({ title, type: 'photo', url: thumb, grandeId, grandeBytes: Math.round(full.length * 0.75), date, tags });
+                            } catch (err) {
+                                await window.deleteFotoGrande(grandeId);
+                                throw err;
+                            }
                         }
                         p.status = 'ok';
                         ok++;
@@ -1696,6 +1734,21 @@
                 video.pause();
                 imgContainer.classList.remove('hidden');
                 img.src = item.url;
+                if (item.grandeId) {
+                    // Se ve la miniatura al momento y se cambia por la foto grande cuando llega
+                    const lbDate = document.getElementById('lbDate');
+                    const dateHtml = lbDate.innerHTML;
+                    lbDate.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Cargando foto…';
+                    window.loadFotoGrande(item).then(full => {
+                        if (window.appState.currentLightboxIdx !== index) return;
+                        img.src = full;
+                        dl.href = full;
+                        lbDate.innerHTML = dateHtml;
+                    }).catch(err => {
+                        console.error('Error cargando la foto grande:', err);
+                        if (window.appState.currentLightboxIdx === index) lbDate.innerHTML = dateHtml;
+                    });
+                }
             }
 
             modal.classList.remove('hidden');
@@ -2100,6 +2153,7 @@
 
         function estimateBytes(item) {
             if (item.videoId) return Math.round((item.chunks || 1) * 700000 * 0.75);
+            if (item.grandeId) return item.grandeBytes || 300000;
             const u = String(item.url || '');
             if (u.startsWith('data:')) {
                 const i = u.indexOf(',');
@@ -2239,7 +2293,7 @@
                     try {
                         const got = item.videoId
                             ? await window.loadVideoBlob(item).then(async b => ({ bytes: new Uint8Array(await b.arrayBuffer()), mime: item.mime || b.type }))
-                            : await fetchBytes(item.url);
+                            : await fetchBytes(item.grandeId ? await window.loadFotoGrande(item) : item.url);
                         totalBytes += got.bytes.length;
                         if (totalBytes > MAX_ZIP_BYTES) {
                             const big = new Error('Son demasiados datos para un solo ZIP (más de 800 MB). Descárgalas por tandas usando un rango de números más pequeño.');
@@ -2329,6 +2383,46 @@
                     alert('No se ha podido borrar: ' + (error.message || code || error));
                 }
             }
+        };
+
+        // ---------- Optimizar fotos antiguas (solo administrador) ----------
+        // Las fotos subidas antes guardaban la foto entera en la ficha: todas se descargaban al abrir la web.
+        // Esto las pasa al sistema nuevo: miniatura en la ficha y la foto grande aparte.
+        window.updateOptimizeBtn = function() {
+            const st = window.appState;
+            const pend = (st.allMedia || []).filter(needsOptimize).length;
+            document.getElementById('adminOptimizeCount').textContent = pend;
+            document.getElementById('adminOptimizeBtn').classList.toggle('hidden', !st.isAdmin || pend === 0 || !!st.optimizing);
+        };
+
+        function needsOptimize(m) {
+            return m.type === 'photo' && !m.grandeId && String(m.url || '').startsWith('data:image/') && m.url.length > 60000;
+        }
+
+        window.optimizeOldPhotos = async function() {
+            const st = window.appState;
+            if (!st.isAdmin || st.optimizing) return;
+            const list = (st.allMedia || []).filter(needsOptimize);
+            if (!list.length) return;
+            if (!confirm('Se van a optimizar ' + list.length + ' fotos antiguas para que la web cargue más rápido.\n\nNo se pierde nada: la foto grande se guarda aparte. Tarda unos segundos por foto; no cierres la página.\n\n¿Empezamos?')) return;
+            st.optimizing = true;
+            let ok = 0;
+            const errors = [];
+            for (let i = 0; i < list.length; i++) {
+                showToast('Optimizando ' + (i + 1) + ' de ' + list.length + '…');
+                try {
+                    await window.optimizeFoto(list[i]);
+                    ok++;
+                } catch (err) {
+                    console.error('Error optimizando', list[i].id, err);
+                    errors.push((list[i].title || 'sin título') + ': ' + (err.code === 'permission-denied' ? 'faltan las reglas nuevas de Firebase' : (err.message || err)));
+                    if (err && err.code === 'permission-denied') break;
+                }
+            }
+            st.optimizing = false;
+            window.updateAccountUI();
+            if (errors.length) alert('Optimizadas ' + ok + ' de ' + list.length + '.\n\n' + errors.join('\n'));
+            else showToast('✅ ' + ok + ' fotos optimizadas');
         };
 
         // ---------- Foto de los novios (la pone el administrador) ----------
@@ -2504,6 +2598,7 @@
                     window.appState.allMedia = items;
                     window.applyFilters();
                     window.renderUserTabs();
+                    window.updateOptimizeBtn();
                 }, (error) => {
                     console.warn("Error leyendo Firestore, cambiando a almacenamiento local:", error);
                     window.appState.lastCloudError = error.code || error.message || 'error de lectura';
@@ -2759,6 +2854,14 @@
                 throw new Error('No hay conexión con Firebase.');
             }
             const db = window.appState.db;
+            if (item.grandeId) {
+                // Foto con la grande aparte: se borran las dos a la vez
+                const batch = writeBatch(db);
+                batch.delete(doc(db, 'fotos', item.id));
+                batch.delete(doc(db, 'fotosGrandes', item.grandeId));
+                await batch.commit();
+                return 'cloud';
+            }
             if (item.videoId) {
                 // Vídeo troceado: se borran a la vez la ficha y todos sus trozos
                 const batch = writeBatch(db);
@@ -2772,6 +2875,56 @@
             // La galería se actualiza sola cuando Firebase confirma el borrado (onSnapshot)
             await deleteDoc(doc(db, 'fotos', item.id));
             return 'cloud';
+        };
+
+        // ---------- Fotos grandes (aparte de la miniatura de la galería) ----------
+        function newId(prefix) {
+            return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+        }
+
+        // Guarda la foto grande y devuelve su id
+        window.saveFotoGrande = async function(dataUrl, ownerUid) {
+            const st = window.appState;
+            if (!st.db || !st.user) throw new Error('Tienes que entrar con tu cuenta para subir fotos.');
+            const id = newId(st.user.uid.slice(0, 6));
+            await setDoc(doc(st.db, 'fotosGrandes', id), { uid: ownerUid || st.user.uid, data: dataUrl });
+            return id;
+        };
+
+        window.deleteFotoGrande = async function(id) {
+            try { await deleteDoc(doc(window.appState.db, 'fotosGrandes', id)); } catch (e) { /* se ignora */ }
+        };
+
+        // Lee la foto grande (petición directa, rápida) y la guarda en memoria
+        const fotoGrandeCache = {};
+        window.loadFotoGrande = function(item) {
+            if (!fotoGrandeCache[item.grandeId]) {
+                fotoGrandeCache[item.grandeId] = (async () => {
+                    const url = 'https://firestore.googleapis.com/v1/projects/' + firebaseConfig.projectId +
+                        '/databases/(default)/documents/fotosGrandes/' + encodeURIComponent(item.grandeId) + '?key=' + firebaseConfig.apiKey;
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error('No se pudo cargar la foto (' + res.status + ')');
+                    const data = await res.json();
+                    const full = data.fields && data.fields.data && data.fields.data.stringValue;
+                    if (!full) throw new Error('Foto vacía');
+                    return full;
+                })();
+                fotoGrandeCache[item.grandeId].catch(() => { delete fotoGrandeCache[item.grandeId]; });
+            }
+            return fotoGrandeCache[item.grandeId];
+        };
+
+        // Pasa una foto antigua al sistema nuevo (solo administrador)
+        window.optimizeFoto = async function(item) {
+            const db = window.appState.db;
+            const thumb = await window.makeThumbnail(item.url);
+            const grandeId = await window.saveFotoGrande(item.url, item.uid || window.appState.user.uid);
+            try {
+                await updateDoc(doc(db, 'fotos', item.id), { url: thumb, grandeId: grandeId, grandeBytes: Math.round(item.url.length * 0.75) });
+            } catch (e) {
+                await window.deleteFotoGrande(grandeId);
+                throw e;
+            }
         };
 
         // ---------- Vídeos troceados ----------
