@@ -320,6 +320,20 @@
             <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Solo tú ves esta lista. Toca «ver» para mostrar una contraseña.</p>
             <p id="usersStatus" class="text-xs text-slate-500"></p>
             <div id="usersList" class="space-y-2"></div>
+
+            <h3 class="text-base font-bold text-slate-900 dark:text-white mt-6 mb-2"><i class="fa-solid fa-clock-rotate-left text-brand-500 mr-1"></i> Últimos movimientos</h3>
+            <div id="activityList" class="space-y-1 text-xs"></div>
+
+            <div class="mt-6 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 space-y-2">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white"><i class="fa-solid fa-envelope text-rose-500 mr-1"></i> Avisos por correo</h3>
+                <p id="avisosStatus" class="text-xs text-slate-500 dark:text-slate-400"></p>
+                <input type="url" id="avisosUrlInput" placeholder="https://script.google.com/macros/s/…/exec" class="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" id="avisosSaveBtn" onclick="saveAvisosUrl()" class="px-3 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-xs">Guardar dirección</button>
+                    <button type="button" onclick="sendTestAviso()" class="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-semibold rounded-xl text-xs text-slate-700 dark:text-slate-200">Enviar correo de prueba</button>
+                </div>
+                <p class="text-[11px] text-slate-400">Cómo conseguir la dirección: guía de administrador → «Avisos por correo».</p>
+            </div>
         </div>
     </div>
 
@@ -1026,6 +1040,7 @@
                 nameInput.value = '';
                 pwInput.value = '';
                 showAccMsg('info', '¡Cuenta creada! Ya puedes subir tus fotos.');
+                if (window.appState.lastSignupWasNew) window.sendAviso('alta', { nombre: window.appState.currentUser });
                 afterAccountReady();
             } catch (err) {
                 console.error('Error al crear la cuenta:', err);
@@ -1042,6 +1057,7 @@
             try {
                 await withBusyButton('profileBtn', 'Guardando...', () => requireFb().completeProfile(nombre));
                 showAccMsg('info', '¡Listo! Ya puedes subir tus fotos.');
+                window.sendAviso('alta', { nombre: window.appState.currentUser });
                 afterAccountReady();
             } catch (err) {
                 console.error('Error al guardar el nombre:', err);
@@ -1649,6 +1665,10 @@
                     window.renderPendingFiles();
                 }
                 setUploadProgress(todo.length, todo.length, 'Publicadas ' + ok + ' de ' + todo.length + '.');
+                if (ok > 0) {
+                    const okVideos = todo.filter(p => p.status === 'ok' && p.isVideo).length;
+                    window.sendAviso('subida', { nombre: st.currentUser, fotos: ok - okVideos, videos: okVideos, titulo: title });
+                }
 
                 if (errors.length === 0) {
                     resetUploadForm();
@@ -2374,6 +2394,7 @@
                     throw new Error('La conexión con Firebase no se ha cargado. Recarga la página.');
                 }
                 await window.deleteMediaItem(item);
+                window.sendAviso('borrado', { nombre: window.appState.currentUser, titulo: item.title || 'sin título', autor: item.userName || '' });
             } catch (error) {
                 console.error('Error al borrar:', error);
                 const code = error && error.code ? error.code : '';
@@ -2486,6 +2507,107 @@
             }
         };
 
+        // ---------- Avisos por correo al administrador ----------
+        // Los envía un pequeño programa de Google Apps Script en la cuenta de Gmail del administrador.
+        // La dirección de ese programa se guarda en «ajustes/avisos». Si no hay dirección, no se envía nada.
+        const AVISOS_CLAVE = 'boda-gloria-joan';
+        const AVISOS_URL_RE = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/;
+
+        window.sendAviso = function(tipo, datos, force) {
+            const st = window.appState;
+            const url = st.avisosUrl;
+            if (!url || (st.isAdmin && !force)) return false; // lo que hace el propio administrador no se avisa
+            try {
+                fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    keepalive: true,
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(Object.assign({ clave: AVISOS_CLAVE, tipo: tipo }, datos || {}))
+                }).catch(() => {});
+            } catch (e) { /* un aviso que falla no debe molestar a nadie */ }
+            return true;
+        };
+
+        function updateAvisosUI() {
+            const st = window.appState;
+            const status = document.getElementById('avisosStatus');
+            const input = document.getElementById('avisosUrlInput');
+            if (!status) return;
+            status.innerHTML = st.avisosUrl
+                ? '<span class="text-emerald-600 dark:text-emerald-400 font-semibold">✅ Activados.</span> Te llegará un correo cuando alguien se dé de alta, suba fotos o borre fotos.'
+                : 'Desactivados. Pega aquí la dirección de tu programa de Google y pulsa «Guardar».';
+            if (document.activeElement !== input) input.value = st.avisosUrl || '';
+        }
+
+        window.saveAvisosUrl = async function() {
+            const url = document.getElementById('avisosUrlInput').value.trim();
+            if (url && !AVISOS_URL_RE.test(url)) {
+                alert('Esa dirección no parece la de Google Apps Script.\n\nDebe empezar por https://script.google.com/macros/s/ y terminar en /exec');
+                return;
+            }
+            try {
+                await withBusyButton('avisosSaveBtn', 'Guardando…', () => requireFb().saveAjuste('avisos', { url: url }));
+                window.appState.avisosUrl = url || null;
+                updateAvisosUI();
+                showToast(url ? '✅ Avisos activados' : 'Avisos desactivados');
+            } catch (err) {
+                alert(err && err.code === 'permission-denied'
+                    ? 'Firebase no deja guardarlo: faltan las reglas de «ajustes».'
+                    : 'No se ha podido guardar: ' + authErrorText(err));
+            }
+        };
+
+        window.sendTestAviso = function() {
+            if (!window.appState.avisosUrl) { alert('Primero pega la dirección y pulsa «Guardar dirección».'); return; }
+            window.sendAviso('prueba', { nombre: window.appState.currentUser || 'Administrador' }, true);
+            showToast('📧 Correo de prueba enviado. Mira tu Gmail en un minuto.');
+        };
+
+        function timeAgo(ms) {
+            const diff = Math.max(0, Date.now() - ms) / 1000;
+            if (diff < 60) return 'ahora mismo';
+            if (diff < 3600) return 'hace ' + Math.round(diff / 60) + ' min';
+            if (diff < 86400) { const h = Math.round(diff / 3600); return 'hace ' + h + (h === 1 ? ' hora' : ' horas'); }
+            if (diff < 7 * 86400) { const d = Math.round(diff / 86400); return 'hace ' + d + (d === 1 ? ' día' : ' días'); }
+            return new Date(ms).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        }
+
+        // Altas (de la lista de usuarios) + tandas de subidas (fotos seguidas de la misma persona)
+        function renderActivity(users) {
+            const events = [];
+            users.forEach(u => { if (u.creado) events.push({ t: u.creado, icon: 'fa-user-plus text-emerald-500', text: '<strong>' + window.esc(u.nombre) + '</strong> se dio de alta' }); });
+            const media = (window.appState.allMedia || []).filter(m => m.createdAt).slice().sort((a, b) => a.createdAt - b.createdAt);
+            let batch = null;
+            const flush = () => {
+                if (!batch) return;
+                const parts = [];
+                if (batch.photos) parts.push(batch.photos + (batch.photos === 1 ? ' foto' : ' fotos'));
+                if (batch.videos) parts.push(batch.videos + (batch.videos === 1 ? ' vídeo' : ' vídeos'));
+                events.push({ t: batch.t, icon: 'fa-camera text-brand-500', text: '<strong>' + window.esc(batch.name) + '</strong> subió ' + parts.join(' y ') });
+                batch = null;
+            };
+            media.forEach(m => {
+                const name = m.userName || 'Anónimo';
+                if (!batch || batch.name !== name || m.createdAt - batch.t > 15 * 60 * 1000) {
+                    flush();
+                    batch = { name: name, t: m.createdAt, photos: 0, videos: 0 };
+                }
+                batch.t = m.createdAt;
+                if (m.type === 'video') batch.videos++; else batch.photos++;
+            });
+            flush();
+            events.sort((a, b) => b.t - a.t);
+            const list = document.getElementById('activityList');
+            list.innerHTML = events.length === 0 ? '<p class="text-slate-400">Todavía no hay movimientos.</p>' :
+                events.slice(0, 30).map(e => `
+                    <div class="flex items-center gap-2 py-1.5 border-b border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-300">
+                        <i class="fa-solid ${e.icon} w-4 text-center"></i>
+                        <span class="flex-grow min-w-0">${e.text}</span>
+                        <span class="text-slate-400 shrink-0">${timeAgo(e.t)}</span>
+                    </div>`).join('');
+        }
+
         // ---------- Lista de usuarios (solo administrador) ----------
         window.openUsersModal = async function() {
             const st = window.appState;
@@ -2494,6 +2616,8 @@
             const list = document.getElementById('usersList');
             status.textContent = 'Cargando...';
             list.innerHTML = '';
+            document.getElementById('activityList').innerHTML = '';
+            updateAvisosUI();
             document.getElementById('usersModal').classList.remove('hidden');
             try {
                 const users = await requireFb().listUsers();
@@ -2501,6 +2625,7 @@
                 (st.allMedia || []).forEach(m => { if (m.uid) counts[m.uid] = (counts[m.uid] || 0) + 1; });
                 users.sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || ''), 'es'));
                 status.textContent = users.length === 1 ? '1 usuario.' : users.length + ' usuarios.';
+                renderActivity(users);
                 list.innerHTML = users.map(u => {
                     const since = u.creado ? new Date(u.creado).toLocaleDateString('es-ES') : '?';
                     const n = counts[u.id] || 0;
@@ -2577,6 +2702,13 @@
                     const data = await res.json();
                     const foto = data.fields && data.fields.foto && data.fields.foto.stringValue;
                     if (foto && foto.startsWith('data:image/')) window.appState.portada = foto;
+                }
+                const res2 = await fetch('https://firestore.googleapis.com/v1/projects/' + firebaseConfig.projectId +
+                    '/databases/(default)/documents/ajustes/avisos?key=' + firebaseConfig.apiKey);
+                if (res2.ok) {
+                    const d2 = await res2.json();
+                    const u = d2.fields && d2.fields.url && d2.fields.url.stringValue;
+                    if (u && /^https:\/\/script\.google\.com\//.test(u)) window.appState.avisosUrl = u;
                 }
             } catch (e) {
                 console.warn('No se pudo cargar la foto de los novios:', e);
@@ -2789,6 +2921,7 @@
                         lastPassword = password;
                         step('Guardando tus datos…');
                         const existing = await restGet('usuarios/' + user.uid, user).catch(() => null);
+                        window.appState.lastSignupWasNew = !existing;
                         if (existing) {
                             await refresh(user, existing);
                             return;
@@ -2805,17 +2938,18 @@
                         lastPassword = null;
                         await authMod.signOut(auth);
                     },
-                    savePortada: async (dataUrl) => {
+                    saveAjuste: async (id, values) => {
                         const user = auth.currentUser;
                         if (!user) throw { code: 'app/no-auth', message: 'Se ha cerrado la sesión. Vuelve a entrar.' };
-                        const res = await restFetch(REST_BASE + '/ajustes/portada?key=' + firebaseConfig.apiKey, {
+                        const res = await restFetch(REST_BASE + '/ajustes/' + encodeURIComponent(id) + '?key=' + firebaseConfig.apiKey, {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + await user.getIdToken() },
-                            body: JSON.stringify({ fields: toRest({ foto: dataUrl }) })
+                            body: JSON.stringify({ fields: toRest(values) })
                         });
                         if (res.status === 403) throw { code: 'permission-denied', message: 'permission-denied' };
                         if (!res.ok) throw new Error('Error de Firebase (' + res.status + ')');
                     },
+                    savePortada: (dataUrl) => window.fb.saveAjuste('portada', { foto: dataUrl }),
                     listUsers: async () => {
                         const snap = await getDocs(collection(db, 'usuarios'));
                         const users = [];
